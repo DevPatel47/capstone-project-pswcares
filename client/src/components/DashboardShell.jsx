@@ -11,21 +11,21 @@ const DashboardShell = ({ title, subtitle }) => {
   };
 
   return (
-    <main className="min-h-screen bg-slate-950 bg-[radial-gradient(circle_at_20%_20%,rgba(14,165,233,0.18),transparent_45%),radial-gradient(circle_at_80%_0%,rgba(45,212,191,0.18),transparent_35%)] text-slate-100">
+    <main className="min-h-screen bg-[linear-gradient(145deg,#f8fafc_0%,#ecfeff_55%,#f0f9ff_100%)] text-slate-900">
       <section className="mx-auto flex w-full max-w-5xl flex-col gap-8 p-6 md:p-10">
-        <header className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur">
+        <header className="rounded-2xl border border-cyan-100 bg-white p-6 shadow-[0_20px_60px_-35px_rgba(6,182,212,0.45)]">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-cyan-200/80">
+              <p className="text-xs uppercase tracking-[0.2em] text-cyan-700">
                 PSWCares Dashboard
               </p>
               <h1 className="mt-2 text-3xl font-semibold">{title}</h1>
-              <p className="mt-1 text-slate-300">{subtitle}</p>
+              <p className="mt-1 text-slate-600">{subtitle}</p>
             </div>
             <div className="flex items-center gap-3">
-              <p className="text-sm text-slate-300">{session?.user?.email}</p>
+              <p className="text-sm text-slate-600">{session?.user?.email}</p>
               <button
-                className="rounded-lg border border-cyan-300/50 px-4 py-2 text-sm font-medium text-cyan-100 transition hover:bg-cyan-300/15"
+                className="rounded-lg border border-cyan-200 px-4 py-2 text-sm font-medium text-cyan-800 transition hover:bg-cyan-50"
                 type="button"
                 onClick={handleLogout}
               >
@@ -35,19 +35,19 @@ const DashboardShell = ({ title, subtitle }) => {
           </div>
         </header>
 
-        <article className="rounded-2xl border border-white/10 bg-white/5 p-6 text-slate-200 backdrop-blur">
+        <article className="rounded-2xl border border-cyan-100 bg-white p-6 text-slate-700 shadow-[0_20px_60px_-35px_rgba(6,182,212,0.45)]">
           <p>
             Authentication UI is active. You are logged in as
-            <span className="ml-2 rounded bg-cyan-400/20 px-2 py-1 text-xs font-semibold uppercase tracking-wide text-cyan-100">
+            <span className="ml-2 rounded bg-cyan-100 px-2 py-1 text-xs font-semibold uppercase tracking-wide text-cyan-800">
               {session?.user?.role}
             </span>
             .
           </p>
-          <p className="mt-3 text-sm text-slate-300">
+          <p className="mt-3 text-sm text-slate-600">
             This is a starter dashboard placeholder for role-based redirects.
           </p>
           <Link
-            className="mt-5 inline-block text-cyan-200 hover:text-cyan-100"
+            className="mt-5 inline-block text-cyan-700 hover:text-cyan-900"
             to="/"
           >
             Back to role selection

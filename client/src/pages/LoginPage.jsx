@@ -66,8 +66,8 @@ const LoginPage = () => {
   };
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(140deg,#f8fafc_0%,#e0f2fe_52%,#cffafe_100%)] px-4 py-10">
-      <section className="mx-auto w-full max-w-lg rounded-2xl border border-cyan-100 bg-white p-7 shadow-[0_20px_60px_-35px_rgba(14,116,144,0.5)] md:p-8">
+    <main className="min-h-screen bg-[linear-gradient(145deg,#f8fafc_0%,#ecfeff_55%,#f0f9ff_100%)] px-4 py-10">
+      <section className="mx-auto w-full max-w-lg rounded-2xl border border-cyan-100 bg-white p-7 shadow-[0_20px_60px_-35px_rgba(6,182,212,0.45)] md:p-8">
         <h1 className="text-3xl font-semibold text-slate-900">Welcome back</h1>
         <p className="mt-2 text-slate-600">
           Sign in to access your PSWCares dashboard.

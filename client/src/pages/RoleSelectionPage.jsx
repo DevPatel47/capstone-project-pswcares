@@ -19,10 +19,10 @@ const roleCards = [
 
 const RoleSelectionPage = () => {
   return (
-    <main className="min-h-screen bg-[linear-gradient(140deg,#f8fafc_0%,#e0f2fe_45%,#cffafe_100%)] text-slate-900">
+    <main className="min-h-screen bg-[linear-gradient(145deg,#f8fafc_0%,#ecfeff_55%,#f0f9ff_100%)] text-slate-900">
       <section className="mx-auto flex min-h-screen w-full max-w-6xl flex-col justify-center p-6 md:p-10">
         <div className="mb-10 max-w-2xl">
-          <p className="text-xs uppercase tracking-[0.25em] text-sky-700">
+          <p className="text-xs uppercase tracking-[0.25em] text-cyan-700">
             PSWCares
           </p>
           <h1 className="mt-3 text-4xl font-semibold leading-tight md:text-5xl">
@@ -38,7 +38,7 @@ const RoleSelectionPage = () => {
           {roleCards.map((card) => (
             <article
               key={card.role}
-              className="rounded-2xl border border-sky-100 bg-white/85 p-6 shadow-[0_10px_30px_-16px_rgba(2,132,199,0.45)] backdrop-blur"
+              className="rounded-2xl border border-cyan-100 bg-white p-6 shadow-[0_20px_60px_-35px_rgba(6,182,212,0.45)]"
             >
               <h2 className="text-2xl font-semibold text-slate-900">
                 {card.title}
@@ -46,13 +46,13 @@ const RoleSelectionPage = () => {
               <p className="mt-3 min-h-16 text-slate-600">{card.description}</p>
               <div className="mt-6 flex flex-wrap items-center gap-3">
                 <Link
-                  className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-sky-700"
+                  className="rounded-lg bg-cyan-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-cyan-700"
                   to={card.registerPath}
                 >
                   Create account
                 </Link>
                 <Link
-                  className="rounded-lg border border-sky-200 px-4 py-2 text-sm font-medium text-sky-800 transition hover:bg-sky-50"
+                  className="rounded-lg border border-cyan-200 px-4 py-2 text-sm font-medium text-cyan-800 transition hover:bg-cyan-50"
                   to="/login"
                 >
                   I already have an account
