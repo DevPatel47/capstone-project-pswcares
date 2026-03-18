@@ -27,3 +27,8 @@ export const getPublicPSWProfileRequest = async (profileId) => {
   const response = await api.get(`/psw-profiles/public/${profileId}`);
   return response.data;
 };
+
+export const searchPSWsRequest = async (params = {}) => {
+  const response = await api.get("/psw/search", { params });
+  return response.data;
+};

@@ -10,13 +10,13 @@ const ClientDashboardPage = () => {
       <div className="rounded-xl border border-cyan-100 bg-cyan-50 p-4">
         <h3 className="text-sm font-semibold text-slate-900">Marketplace</h3>
         <p className="mt-1 text-sm text-slate-700">
-          View a PSW profile with tabs for services, certificates, and reviews.
+          Search verified PSWs by city, service, and experience.
         </p>
         <Link
           className="mt-3 inline-block rounded-lg bg-cyan-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-cyan-700"
-          to="/client/psw-profiles/demo-approved"
+          to="/client/psw-search"
         >
-          View Demo PSW Profile
+          Search PSWs
         </Link>
       </div>
     </DashboardShell>
