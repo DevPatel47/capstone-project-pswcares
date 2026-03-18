@@ -187,3 +187,77 @@ export const setPSWVerificationStatus = async ({
 
   return profile;
 };
+
+export const searchVerifiedPSWProfiles = async ({
+  location,
+  service,
+  minExperience,
+  page,
+  limit,
+}) => {
+  const parsedPage = Number.parseInt(page, 10);
+  const parsedLimit = Number.parseInt(limit, 10);
+
+  const safePage = Number.isNaN(parsedPage) || parsedPage < 1 ? 1 : parsedPage;
+  const safeLimit =
+    Number.isNaN(parsedLimit) || parsedLimit < 1
+      ? 10
+      : Math.min(parsedLimit, 50);
+
+  const query = {
+    verificationStatus: "approved",
+  };
+
+  if (location && String(location).trim()) {
+    query.location = {
+      $regex: String(location).trim(),
+      $options: "i",
+    };
+  }
+
+  if (service && String(service).trim()) {
+    query.services = {
+      $elemMatch: {
+        $regex: `^${String(service)
+          .trim()
+          .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+        $options: "i",
+      },
+    };
+  }
+
+  if (typeof minExperience !== "undefined") {
+    const parsedExperience = Number(minExperience);
+
+    if (Number.isFinite(parsedExperience) && parsedExperience >= 0) {
+      query.experience = { $gte: parsedExperience };
+    }
+  }
+
+  const skip = (safePage - 1) * safeLimit;
+
+  const [items, total] = await Promise.all([
+    PSWProfile.find(query)
+      .populate("userId", "name")
+      .sort({ verifiedAt: -1, createdAt: -1 })
+      .skip(skip)
+      .limit(safeLimit),
+    PSWProfile.countDocuments(query),
+  ]);
+
+  return {
+    items,
+    pagination: {
+      page: safePage,
+      limit: safeLimit,
+      total,
+      totalPages: Math.ceil(total / safeLimit) || 1,
+    },
+    filters: {
+      location: location || null,
+      service: service || null,
+      minExperience:
+        typeof minExperience === "undefined" ? null : Number(minExperience),
+    },
+  };
+};

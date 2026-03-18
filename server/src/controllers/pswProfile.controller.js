@@ -1,6 +1,7 @@
 import {
   getPSWProfileWithCertificates,
   getPendingPSWProfiles,
+  searchVerifiedPSWProfiles,
   setPSWVerificationStatus,
   uploadPSWCertificate,
   upsertPSWProfile,
@@ -89,6 +90,22 @@ export const updatePSWVerificationByAdmin = async (req, res, next) => {
       message: `PSW profile ${profile.verificationStatus}.`,
       profile,
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const searchPSWs = async (req, res, next) => {
+  try {
+    const result = await searchVerifiedPSWProfiles({
+      location: req.query.location,
+      service: req.query.service,
+      minExperience: req.query.experience,
+      page: req.query.page,
+      limit: req.query.limit,
+    });
+
+    res.status(200).json(result);
   } catch (error) {
     next(error);
   }
