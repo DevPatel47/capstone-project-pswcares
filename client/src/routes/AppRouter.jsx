@@ -7,6 +7,8 @@ import ForgotPasswordPage from "../pages/ForgotPasswordPage";
 import LoginPage from "../pages/LoginPage";
 import NotFoundPage from "../pages/NotFoundPage.jsx";
 import PSWDashboardPage from "../pages/PSWDashboardPage";
+import PSWProfileDisplayPage from "../pages/PSWProfileDisplayPage";
+import PSWProfileEditPage from "../pages/PSWProfileEditPage";
 import RegisterPage from "../pages/RegisterPage";
 import RoleSelectionPage from "../pages/RoleSelectionPage";
 
@@ -22,10 +24,15 @@ const AppRouter = () => {
 
       <Route element={<ProtectedRoute allowedRoles={["client"]} />}>
         <Route path="/client/dashboard" element={<ClientDashboardPage />} />
+        <Route
+          path="/client/psw-profiles/:profileId"
+          element={<PSWProfileDisplayPage />}
+        />
       </Route>
 
       <Route element={<ProtectedRoute allowedRoles={["psw"]} />}>
         <Route path="/psw/dashboard" element={<PSWDashboardPage />} />
+        <Route path="/psw/profile" element={<PSWProfileEditPage />} />
       </Route>
 
       <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>

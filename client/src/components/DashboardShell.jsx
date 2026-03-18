@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { clearAuthSession, getAuthSession } from "../services/authStorage";
 
-const DashboardShell = ({ title, subtitle }) => {
+const DashboardShell = ({ title, subtitle, children }) => {
   const navigate = useNavigate();
   const session = getAuthSession();
 
@@ -52,6 +52,8 @@ const DashboardShell = ({ title, subtitle }) => {
           >
             Back to role selection
           </Link>
+
+          {children ? <div className="mt-5">{children}</div> : null}
         </article>
       </section>
     </main>
