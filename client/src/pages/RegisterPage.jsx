@@ -1,15 +1,20 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import ErrorBanner from "../components/ErrorBanner";
+import LoadingState from "../components/LoadingState";
+import { useToast } from "../context/ToastContext";
 import { registerRequest } from "../services/authApi";
 import {
   getDashboardPathByRole,
   setAuthSession,
 } from "../services/authStorage";
+import { hasMinLength, isValidEmail } from "../services/validation";
 
 const allowedRoles = ["client", "psw"];
 
 const RegisterPage = () => {
   const navigate = useNavigate();
+  const toast = useToast();
   const [searchParams] = useSearchParams();
   const roleFromQuery = searchParams.get("role");
 
@@ -35,15 +40,15 @@ const RegisterPage = () => {
   const validate = () => {
     const validationErrors = {};
 
-    if (form.name.trim().length < 2) {
+    if (!hasMinLength(form.name, 2)) {
       validationErrors.name = "Name must be at least 2 characters.";
     }
 
-    if (!/^\S+@\S+\.\S+$/.test(form.email)) {
+    if (!isValidEmail(form.email)) {
       validationErrors.email = "Please enter a valid email.";
     }
 
-    if (form.password.length < 8) {
+    if (!hasMinLength(form.password, 8)) {
       validationErrors.password = "Password must be at least 8 characters.";
     }
 
@@ -85,12 +90,15 @@ const RegisterPage = () => {
       });
 
       setAuthSession({ token: response.token, user: response.user });
+      toast.success("Account created successfully.");
       navigate(getDashboardPathByRole(response.user.role), { replace: true });
     } catch (error) {
-      setApiError(
+      const message =
         error.response?.data?.message ||
-          "Registration failed. Please try again.",
-      );
+        error.message ||
+        "Registration failed. Please try again.";
+      setApiError(message);
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -212,10 +220,10 @@ const RegisterPage = () => {
             ) : null}
           </div>
 
-          {apiError ? (
-            <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
-              {apiError}
-            </div>
+          <ErrorBanner message={apiError} compact />
+
+          {isSubmitting ? (
+            <LoadingState compact label="Creating account..." />
           ) : null}
 
           <button

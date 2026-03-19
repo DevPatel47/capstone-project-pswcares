@@ -1,4 +1,5 @@
 import {
+  getPublicApprovedPSWProfileById,
   getPSWProfileWithCertificates,
   getPendingPSWProfiles,
   searchVerifiedPSWProfiles,
@@ -103,6 +104,18 @@ export const searchPSWs = async (req, res, next) => {
       minExperience: req.query.experience,
       page: req.query.page,
       limit: req.query.limit,
+    });
+
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getPublicPSWProfile = async (req, res, next) => {
+  try {
+    const result = await getPublicApprovedPSWProfileById({
+      profileId: req.params.profileId,
     });
 
     res.status(200).json(result);

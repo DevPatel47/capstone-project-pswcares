@@ -37,6 +37,19 @@ const pswProfileSchema = new mongoose.Schema(
       trim: true,
       maxlength: 250,
     },
+    averageRating: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 5,
+      index: true,
+    },
+    reviewCount: {
+      type: Number,
+      default: 0,
+      min: 0,
+      index: true,
+    },
     verificationStatus: {
       type: String,
       enum: PSW_VERIFICATION_STATUSES,

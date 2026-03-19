@@ -37,6 +37,12 @@ const appointmentSchema = new mongoose.Schema(
       min: 15,
       max: 720,
     },
+    paymentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Payment",
+      default: null,
+      index: true,
+    },
     status: {
       type: String,
       enum: APPOINTMENT_STATUSES,

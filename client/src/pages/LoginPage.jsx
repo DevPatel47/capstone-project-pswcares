@@ -1,13 +1,18 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import ErrorBanner from "../components/ErrorBanner";
+import LoadingState from "../components/LoadingState";
+import { useToast } from "../context/ToastContext";
 import { loginRequest } from "../services/authApi";
 import {
   getDashboardPathByRole,
   setAuthSession,
 } from "../services/authStorage";
+import { isValidEmail } from "../services/validation";
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const toast = useToast();
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -19,12 +24,12 @@ const LoginPage = () => {
   const validate = () => {
     const validationErrors = {};
 
-    if (!/^\S+@\S+\.\S+$/.test(form.email)) {
+    if (!isValidEmail(form.email)) {
       validationErrors.email = "Please enter a valid email.";
     }
 
-    if (form.password.length < 8) {
-      validationErrors.password = "Password must be at least 8 characters.";
+    if (!String(form.password || "").trim()) {
+      validationErrors.password = "Password is required.";
     }
 
     return validationErrors;
@@ -55,11 +60,15 @@ const LoginPage = () => {
       });
 
       setAuthSession({ token: response.token, user: response.user });
+      toast.success("Signed in successfully.");
       navigate(getDashboardPathByRole(response.user.role), { replace: true });
     } catch (error) {
-      setApiError(
-        error.response?.data?.message || "Login failed. Please try again.",
-      );
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        "Login failed. Please try again.";
+      setApiError(message);
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -123,10 +132,10 @@ const LoginPage = () => {
             </Link>
           </div>
 
-          {apiError ? (
-            <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
-              {apiError}
-            </div>
+          <ErrorBanner message={apiError} compact />
+
+          {isSubmitting ? (
+            <LoadingState compact label="Verifying credentials..." />
           ) : null}
 
           <button

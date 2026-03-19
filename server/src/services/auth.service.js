@@ -13,8 +13,19 @@ export const registerUser = async ({ name, email, password, role }) => {
     throw createHttpError(400, "Name, email, and password are required.");
   }
 
+  if (String(password).length < 8) {
+    throw createHttpError(400, "Password must be at least 8 characters.");
+  }
+
   if (role && !USER_ROLES.includes(role)) {
     throw createHttpError(400, "Invalid role.");
+  }
+
+  if (role === "admin") {
+    throw createHttpError(
+      403,
+      "Admin registration is disabled. Use the secure admin seed script.",
+    );
   }
 
   const existingUser = await User.findOne({

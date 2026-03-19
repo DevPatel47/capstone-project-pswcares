@@ -21,6 +21,9 @@ for (const key of required) {
 export const env = {
   nodeEnv: process.env.NODE_ENV ?? "development",
   port: Number(process.env.PORT ?? 5000),
+  serverOrigin:
+    process.env.SERVER_ORIGIN ||
+    `http://localhost:${Number(process.env.PORT ?? 5000)}`,
   mongoUri: process.env.MONGODB_URI,
   jwtSecret: process.env.JWT_SECRET,
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "7d",
@@ -29,4 +32,11 @@ export const env = {
   awsAccessKeyId: process.env.AWS_ACCESS_KEY_ID,
   awsSecretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   awsS3Bucket: process.env.AWS_S3_BUCKET,
+  stripeSecretKey: process.env.STRIPE_SECRET_KEY || "",
+  stripeSuccessUrl:
+    process.env.STRIPE_SUCCESS_URL ||
+    `${process.env.SERVER_ORIGIN || `http://localhost:${Number(process.env.PORT ?? 5000)}`}/api/payments/success`,
+  stripeCancelUrl:
+    process.env.STRIPE_CANCEL_URL ||
+    `${process.env.SERVER_ORIGIN || `http://localhost:${Number(process.env.PORT ?? 5000)}`}/api/payments/cancel`,
 };

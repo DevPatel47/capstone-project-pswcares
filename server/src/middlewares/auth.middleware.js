@@ -54,3 +54,31 @@ export const authorizeRoles = (...roles) => {
     next();
   };
 };
+
+export const optionalAuthenticate = async (req, _res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      req.user = null;
+      next();
+      return;
+    }
+
+    const token = authHeader.split(" ")[1];
+    const decoded = jwt.verify(token, env.jwtSecret);
+    const user = await User.findById(decoded.sub);
+
+    if (!user || user.status !== "active") {
+      req.user = null;
+      next();
+      return;
+    }
+
+    req.user = user;
+    next();
+  } catch (_error) {
+    req.user = null;
+    next();
+  }
+};

@@ -280,6 +280,7 @@ const PSWSearchPage = () => {
                       </p>
                       <Link
                         className="mt-2 inline-block w-full rounded-lg bg-cyan-600 px-4 py-2 text-center text-sm font-semibold text-white transition hover:bg-cyan-700"
+                        state={{ profile }}
                         to={`/client/psw-profiles/${profile._id}`}
                       >
                         View Profile

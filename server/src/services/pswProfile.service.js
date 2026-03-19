@@ -57,6 +57,10 @@ const validateProfilePayload = ({
 };
 
 export const upsertPSWProfile = async ({ userId, payload }) => {
+  if (!userId) {
+    throw createHttpError(400, "userId is required.");
+  }
+
   const validated = validateProfilePayload(payload);
 
   const profile = await PSWProfile.findOneAndUpdate(
@@ -239,7 +243,7 @@ export const searchVerifiedPSWProfiles = async ({
   const [items, total] = await Promise.all([
     PSWProfile.find(query)
       .populate("userId", "name")
-      .sort({ verifiedAt: -1, createdAt: -1 })
+      .sort({ averageRating: -1, verifiedAt: -1, createdAt: -1 })
       .skip(skip)
       .limit(safeLimit),
     PSWProfile.countDocuments(query),
@@ -259,5 +263,28 @@ export const searchVerifiedPSWProfiles = async ({
       minExperience:
         typeof minExperience === "undefined" ? null : Number(minExperience),
     },
+  };
+};
+
+export const getPublicApprovedPSWProfileById = async ({ profileId }) => {
+  const profile = await PSWProfile.findOne({
+    _id: profileId,
+    verificationStatus: "approved",
+  }).populate("userId", "name");
+
+  if (!profile) {
+    throw createHttpError(404, "Profile not found.");
+  }
+
+  const certificates = await Certificate.find({
+    pswProfileId: profile._id,
+  })
+    .select("_id originalFileName fileUrl createdAt")
+    .sort({ createdAt: -1 });
+
+  return {
+    profile,
+    certificates,
+    reviews: [],
   };
 };

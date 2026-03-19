@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  getPublicPSWProfile,
   getMyPSWProfile,
   uploadMyCertificate,
   upsertMyPSWProfile,
@@ -11,6 +12,8 @@ import {
 import { uploadSingleFile } from "../middlewares/upload.middleware.js";
 
 const router = Router();
+
+router.get("/public/:profileId", getPublicPSWProfile);
 
 router.use(authenticate, authorizeRoles("psw"));
 

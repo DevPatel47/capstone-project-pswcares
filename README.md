@@ -114,6 +114,27 @@ npm run dev:client
 - API root: `GET /`
 - Health route: `GET /api/health`
 
+## Secure Admin Seeding
+
+Admin accounts cannot be created through public registration.
+
+Use the secure seed script instead:
+
+1. Set these values in `server/.env`:
+
+- `ADMIN_SEED_NAME`
+- `ADMIN_SEED_EMAIL`
+- `ADMIN_SEED_PASSWORD` (12+ characters)
+- `ADMIN_SEED_TOKEN` (long random value)
+
+2. Run from the `server` directory:
+
+```bash
+npm run seed:admin -- --token=YOUR_ADMIN_SEED_TOKEN
+```
+
+The script creates the admin if missing, or updates that admin account's password and status if it already exists.
+
 ## Architecture Notes
 
 - Backend is organized with modular layers:
