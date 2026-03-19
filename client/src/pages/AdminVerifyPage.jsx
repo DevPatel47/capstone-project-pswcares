@@ -8,6 +8,7 @@ import {
 const AdminVerifyPage = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshingLinks, setRefreshingLinks] = useState(false);
   const [error, setError] = useState("");
   const [noteByProfile, setNoteByProfile] = useState({});
 
@@ -32,6 +33,12 @@ const AdminVerifyPage = () => {
     loadQueue();
   }, []);
 
+  const handleRefreshLinks = async () => {
+    setRefreshingLinks(true);
+    await loadQueue();
+    setRefreshingLinks(false);
+  };
+
   const handleDecision = async (profileId, status) => {
     try {
       await updateAdminVerification(profileId, {
@@ -52,6 +59,19 @@ const AdminVerifyPage = () => {
       title="Verification Queue"
       subtitle="Approve or reject pending PSW verification submissions."
     >
+      <div className="mb-4 flex justify-end">
+        <button
+          className="rounded-lg border border-cyan-300 bg-white px-3 py-2 text-sm font-semibold text-cyan-900 hover:bg-cyan-50 disabled:cursor-not-allowed disabled:opacity-60"
+          disabled={loading || refreshingLinks}
+          onClick={handleRefreshLinks}
+          type="button"
+        >
+          {refreshingLinks
+            ? "Refreshing links..."
+            : "Refresh certificate links"}
+        </button>
+      </div>
+
       {loading ? (
         <p className="text-sm text-slate-500">Loading queue...</p>
       ) : null}
@@ -78,6 +98,53 @@ const AdminVerifyPage = () => {
             <p className="text-sm text-slate-600">
               Certificates: {item.certificates?.length ?? 0}
             </p>
+
+            {item.certificates?.length ? (
+              <div className="mt-3 rounded-lg border border-cyan-100 bg-white p-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+                  Certificate Documents
+                </p>
+                <ul className="mt-2 space-y-2">
+                  {item.certificates.map((certificate, index) => {
+                    const fileName =
+                      certificate.originalFileName ||
+                      `Certificate ${index + 1}`;
+
+                    if (!certificate.fileUrl) {
+                      return (
+                        <li
+                          key={
+                            certificate._id || `${item.profile?._id}-${index}`
+                          }
+                          className="text-sm text-amber-700"
+                        >
+                          {fileName} (link unavailable)
+                        </li>
+                      );
+                    }
+
+                    return (
+                      <li
+                        key={certificate._id || `${item.profile?._id}-${index}`}
+                      >
+                        <a
+                          className="inline-flex items-center rounded-lg border border-cyan-200 px-3 py-1.5 text-sm font-medium text-cyan-800 hover:bg-cyan-50"
+                          href={certificate.fileUrl}
+                          rel="noopener noreferrer"
+                          target="_blank"
+                        >
+                          View {fileName}
+                        </a>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ) : (
+              <p className="mt-2 text-sm text-amber-700">
+                No certificates uploaded yet.
+              </p>
+            )}
 
             <textarea
               className="mt-3 w-full rounded-lg border border-cyan-200 px-3 py-2 text-sm"

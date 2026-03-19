@@ -1,4 +1,5 @@
-import { S3Client } from "@aws-sdk/client-s3";
+import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { env } from "./env.js";
 
 export const s3Client = new S3Client({
@@ -16,4 +17,15 @@ export const getS3FileUrl = (key) => {
     .join("/");
 
   return `https://${env.awsS3Bucket}.s3.${env.awsRegion}.amazonaws.com/${encodedKey}`;
+};
+
+export const getSignedS3ReadUrl = async (key) => {
+  const command = new GetObjectCommand({
+    Bucket: env.awsS3Bucket,
+    Key: key,
+  });
+
+  return getSignedUrl(s3Client, command, {
+    expiresIn: env.s3SignedUrlTtlSeconds,
+  });
 };

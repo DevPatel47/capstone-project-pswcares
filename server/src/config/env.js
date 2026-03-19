@@ -32,6 +32,7 @@ export const env = {
   awsAccessKeyId: process.env.AWS_ACCESS_KEY_ID,
   awsSecretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   awsS3Bucket: process.env.AWS_S3_BUCKET,
+  s3SignedUrlTtlSeconds: Number(process.env.S3_SIGNED_URL_TTL_SECONDS || 900),
   stripeSecretKey: process.env.STRIPE_SECRET_KEY || "",
   stripeSuccessUrl:
     process.env.STRIPE_SUCCESS_URL ||

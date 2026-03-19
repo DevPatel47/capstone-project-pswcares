@@ -1,7 +1,30 @@
 import Certificate from "../models/certificate.model.js";
 import PSWProfile from "../models/pswProfile.model.js";
+import { getSignedS3ReadUrl } from "../config/s3.js";
 import { uploadFileToS3 } from "./upload.service.js";
 import { createHttpError } from "../utils/httpError.js";
+
+const attachSignedUrl = async (certificate) => {
+  const item =
+    typeof certificate.toObject === "function"
+      ? certificate.toObject()
+      : { ...certificate };
+
+  if (!item.s3Key) {
+    return item;
+  }
+
+  const signedUrl = await getSignedS3ReadUrl(item.s3Key);
+
+  return {
+    ...item,
+    fileUrl: signedUrl,
+  };
+};
+
+const attachSignedUrls = async (certificates) => {
+  return Promise.all((certificates || []).map((item) => attachSignedUrl(item)));
+};
 
 const normalizeServices = (services) => {
   if (!services) {
@@ -96,7 +119,7 @@ export const getPSWProfileWithCertificates = async ({ userId }) => {
     createdAt: -1,
   });
 
-  return { profile, certificates };
+  return { profile, certificates: await attachSignedUrls(certificates) };
 };
 
 export const uploadPSWCertificate = async ({ userId, file }) => {
@@ -134,7 +157,7 @@ export const uploadPSWCertificate = async ({ userId, file }) => {
     await profile.save();
   }
 
-  return certificate;
+  return attachSignedUrl(certificate);
 };
 
 export const getPendingPSWProfiles = async () => {
@@ -160,9 +183,15 @@ export const getPendingPSWProfiles = async () => {
     certificateMap.get(key).push(cert);
   }
 
+  const hydratedMap = new Map();
+
+  for (const [profileId, certList] of certificateMap.entries()) {
+    hydratedMap.set(profileId, await attachSignedUrls(certList));
+  }
+
   return pendingProfiles.map((profile) => ({
     profile,
-    certificates: certificateMap.get(String(profile._id)) || [],
+    certificates: hydratedMap.get(String(profile._id)) || [],
   }));
 };
 
@@ -279,12 +308,12 @@ export const getPublicApprovedPSWProfileById = async ({ profileId }) => {
   const certificates = await Certificate.find({
     pswProfileId: profile._id,
   })
-    .select("_id originalFileName fileUrl createdAt")
+    .select("_id originalFileName fileUrl s3Key createdAt")
     .sort({ createdAt: -1 });
 
   return {
     profile,
-    certificates,
+    certificates: await attachSignedUrls(certificates),
     reviews: [],
   };
 };
