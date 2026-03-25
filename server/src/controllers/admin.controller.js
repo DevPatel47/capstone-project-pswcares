@@ -109,3 +109,34 @@ export const getAnalytics = async (_req, res, next) => {
     next(error);
   }
 };
+
+export const getContacts = async (req, res, next) => {
+  try {
+    const { default: Contact } = await import("../models/contact.model.js");
+    const filter = req.query.status ? { status: req.query.status } : {};
+    const items = await Contact.find(filter).sort({ createdAt: -1 }).lean();
+
+    res.status(200).json({ count: items.length, items });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateContactStatus = async (req, res, next) => {
+  try {
+    const { default: Contact } = await import("../models/contact.model.js");
+    const contact = await Contact.findByIdAndUpdate(
+      req.params.contactId,
+      { status: req.body.status },
+      { new: true, runValidators: true },
+    );
+
+    if (!contact) {
+      return res.status(404).json({ error: "Contact submission not found." });
+    }
+
+    res.status(200).json({ message: "Status updated.", contact });
+  } catch (error) {
+    next(error);
+  }
+};

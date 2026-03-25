@@ -34,3 +34,13 @@ export const updateAdminDispute = async (disputeId, payload) => {
   const { data } = await api.patch(`/admin/disputes/${disputeId}`, payload);
   return data;
 };
+
+export const getAdminContacts = async (params = {}) => {
+  const { data } = await api.get("/admin/contacts", { params });
+  return data;
+};
+
+export const updateAdminContactStatus = async (contactId, status) => {
+  const { data } = await api.patch(`/admin/contacts/${contactId}`, { status });
+  return data;
+};

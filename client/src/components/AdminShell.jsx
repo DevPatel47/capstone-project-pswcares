@@ -6,6 +6,7 @@ const NAV_ITEMS = [
   { to: "/admin/users", label: "User Management" },
   { to: "/admin/verify", label: "Verification Queue" },
   { to: "/admin/disputes", label: "Dispute Handling" },
+  { to: "/admin/contacts", label: "Contact Messages" },
 ];
 
 const AdminShell = ({ title, subtitle, children }) => {
