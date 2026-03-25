@@ -1,8 +1,18 @@
 import { useEffect, useState } from "react";
 import AdminShell from "../components/AdminShell";
+import LoadingState from "../components/LoadingState";
+import ErrorBanner from "../components/ErrorBanner";
+import Avatar from "../components/ui/Avatar";
+import Badge from "../components/ui/Badge";
+import EmptyState from "../components/ui/EmptyState";
 import { getAdminUsers } from "../services/adminApi";
 
 const ROLE_OPTIONS = ["all", "client", "psw", "admin"];
+
+const roleBadge = (role) => {
+  const map = { client: "info", psw: "success", admin: "warning" };
+  return map[role] || "neutral";
+};
 
 const AdminUsersPage = () => {
   const [users, setUsers] = useState([]);
@@ -14,7 +24,6 @@ const AdminUsersPage = () => {
   const loadUsers = async () => {
     setLoading(true);
     setError("");
-
     try {
       const data = await getAdminUsers({
         role: role === "all" ? undefined : role,
@@ -23,9 +32,7 @@ const AdminUsersPage = () => {
       });
       setUsers(data.items || []);
     } catch (requestError) {
-      setError(
-        requestError?.response?.data?.message || "Failed to load users.",
-      );
+      setError(requestError?.response?.data?.message || "Failed to load users.");
     } finally {
       setLoading(false);
     }
@@ -45,73 +52,59 @@ const AdminUsersPage = () => {
       title="User Management"
       subtitle="Review platform users by role and quickly audit account details."
     >
-      <form
-        className="mb-5 flex flex-col gap-3 md:flex-row"
-        onSubmit={handleSubmit}
-      >
-        <select
-          className="rounded-lg border border-cyan-200 px-3 py-2 text-sm"
-          value={role}
-          onChange={(event) => setRole(event.target.value)}
-        >
+      <form className="mb-6 flex flex-col gap-3 md:flex-row" onSubmit={handleSubmit}>
+        <select className="app-select max-w-[180px]" value={role} onChange={(e) => setRole(e.target.value)}>
           {ROLE_OPTIONS.map((option) => (
             <option key={option} value={option}>
               {option === "all" ? "All roles" : option.toUpperCase()}
             </option>
           ))}
         </select>
-
         <input
-          className="flex-1 rounded-lg border border-cyan-200 px-3 py-2 text-sm"
-          placeholder="Search by name or email"
+          className="app-input flex-1"
+          placeholder="Search by name or email..."
           value={search}
-          onChange={(event) => setSearch(event.target.value)}
+          onChange={(e) => setSearch(e.target.value)}
         />
-
-        <button
-          className="rounded-lg bg-cyan-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-cyan-800"
-          type="submit"
-        >
-          Search
-        </button>
+        <button className="btn-primary btn-sm" type="submit">Search</button>
       </form>
 
-      {loading ? (
-        <p className="text-sm text-slate-500">Loading users...</p>
-      ) : null}
-      {error ? <p className="text-sm text-rose-600">{error}</p> : null}
+      {loading ? <LoadingState label="Loading users..." /> : null}
+      {error ? <ErrorBanner message={error} /> : null}
 
       {!loading && !error ? (
         <div className="overflow-x-auto">
-          <table className="min-w-full border-separate border-spacing-y-2 text-sm">
+          <table className="min-w-full text-sm">
             <thead>
-              <tr className="text-left text-slate-500">
-                <th className="px-3 py-2">Name</th>
-                <th className="px-3 py-2">Email</th>
-                <th className="px-3 py-2">Role</th>
-                <th className="px-3 py-2">Status</th>
+              <tr className="border-b border-brand-100/60 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
+                <th className="px-4 py-3">User</th>
+                <th className="px-4 py-3">Email</th>
+                <th className="px-4 py-3">Role</th>
+                <th className="px-4 py-3">Status</th>
               </tr>
             </thead>
             <tbody>
               {users.map((user) => (
-                <tr
-                  key={user._id}
-                  className="rounded-xl bg-cyan-50/60 text-slate-700"
-                >
-                  <td className="px-3 py-3 font-medium">{user.name}</td>
-                  <td className="px-3 py-3">{user.email}</td>
-                  <td className="px-3 py-3 uppercase">{user.role}</td>
-                  <td className="px-3 py-3">
-                    <span className="rounded-full bg-white px-2 py-1 text-xs font-semibold uppercase text-cyan-800">
-                      {user.status || "active"}
-                    </span>
+                <tr key={user._id} className="border-b border-brand-100/40 transition hover:bg-brand-50/30">
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <Avatar name={user.name || ""} size="sm" />
+                      <span className="font-medium text-slate-900">{user.name}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-slate-600">{user.email}</td>
+                  <td className="px-4 py-3">
+                    <Badge variant={roleBadge(user.role)}>{user.role}</Badge>
+                  </td>
+                  <td className="px-4 py-3">
+                    <Badge variant="success">{user.status || "active"}</Badge>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
           {users.length === 0 ? (
-            <p className="px-3 py-4 text-sm text-slate-500">No users found.</p>
+            <EmptyState title="No users found" description="Try adjusting your filters or search query." />
           ) : null}
         </div>
       ) : null}

@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
 import AdminShell from "../components/AdminShell";
+import LoadingState from "../components/LoadingState";
+import ErrorBanner from "../components/ErrorBanner";
+import Avatar from "../components/ui/Avatar";
+import Badge from "../components/ui/Badge";
+import EmptyState from "../components/ui/EmptyState";
 import {
   getAdminVerificationQueue,
   updateAdminVerification,
@@ -15,15 +20,11 @@ const AdminVerifyPage = () => {
   const loadQueue = async () => {
     setLoading(true);
     setError("");
-
     try {
       const data = await getAdminVerificationQueue();
       setItems(data.items || []);
     } catch (requestError) {
-      setError(
-        requestError?.response?.data?.message ||
-          "Failed to load verification queue.",
-      );
+      setError(requestError?.response?.data?.message || "Failed to load verification queue.");
     } finally {
       setLoading(false);
     }
@@ -45,10 +46,7 @@ const AdminVerifyPage = () => {
         status,
         note: noteByProfile[profileId] || "",
       });
-
-      setItems((previous) =>
-        previous.filter((item) => item.profile?._id !== profileId),
-      );
+      setItems((previous) => previous.filter((item) => item.profile?._id !== profileId));
     } catch (requestError) {
       setError(requestError?.response?.data?.message || "Action failed.");
     }
@@ -59,76 +57,61 @@ const AdminVerifyPage = () => {
       title="Verification Queue"
       subtitle="Approve or reject pending PSW verification submissions."
     >
-      <div className="mb-4 flex justify-end">
+      <div className="mb-5 flex justify-end">
         <button
-          className="rounded-lg border border-cyan-300 bg-white px-3 py-2 text-sm font-semibold text-cyan-900 hover:bg-cyan-50 disabled:cursor-not-allowed disabled:opacity-60"
+          className="btn-outline btn-sm"
           disabled={loading || refreshingLinks}
           onClick={handleRefreshLinks}
           type="button"
         >
-          {refreshingLinks
-            ? "Refreshing links..."
-            : "Refresh certificate links"}
+          {refreshingLinks ? "Refreshing links..." : "Refresh certificate links"}
         </button>
       </div>
 
-      {loading ? (
-        <p className="text-sm text-slate-500">Loading queue...</p>
-      ) : null}
-      {error ? <p className="mb-3 text-sm text-rose-600">{error}</p> : null}
+      {loading ? <LoadingState label="Loading queue..." /> : null}
+      {error ? <ErrorBanner message={error} /> : null}
 
       <div className="space-y-4">
         {items.map((item) => (
           <article
             key={item.profile?._id}
-            className="rounded-xl border border-cyan-100 bg-cyan-50/40 p-4"
+            className="rounded-xl border border-brand-100/60 bg-gradient-to-br from-white to-brand-50/30 p-5"
           >
-            <h3 className="text-base font-semibold text-slate-900">
-              {item.profile?.userId?.name}
-            </h3>
-            <p className="text-sm text-slate-600">
-              {item.profile?.userId?.email}
-            </p>
-            <p className="mt-2 text-sm text-slate-600">
-              Experience: {item.profile?.experience ?? 0} years
-            </p>
-            <p className="text-sm text-slate-600">
-              Hourly Rate: ${item.profile?.hourlyRate ?? 0}
-            </p>
-            <p className="text-sm text-slate-600">
-              Certificates: {item.certificates?.length ?? 0}
-            </p>
+            <div className="flex items-start gap-4">
+              <Avatar name={item.profile?.userId?.name || ""} size="md" />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="text-base font-bold text-slate-900">{item.profile?.userId?.name}</h3>
+                  <Badge variant="warning">Pending</Badge>
+                </div>
+                <p className="text-sm text-slate-500">{item.profile?.userId?.email}</p>
+                <div className="mt-2 flex flex-wrap gap-4 text-sm text-slate-600">
+                  <span><span className="font-semibold text-slate-900">{item.profile?.experience ?? 0}</span> yrs exp</span>
+                  <span><span className="font-semibold text-slate-900">${item.profile?.hourlyRate ?? 0}</span>/hr</span>
+                  <span><span className="font-semibold text-slate-900">{item.certificates?.length ?? 0}</span> certificates</span>
+                </div>
+              </div>
+            </div>
 
             {item.certificates?.length ? (
-              <div className="mt-3 rounded-lg border border-cyan-100 bg-white p-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+              <div className="mt-4 rounded-xl border border-brand-100/60 bg-white p-4">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
                   Certificate Documents
                 </p>
-                <ul className="mt-2 space-y-2">
+                <ul className="space-y-2">
                   {item.certificates.map((certificate, index) => {
-                    const fileName =
-                      certificate.originalFileName ||
-                      `Certificate ${index + 1}`;
-
+                    const fileName = certificate.originalFileName || `Certificate ${index + 1}`;
                     if (!certificate.fileUrl) {
                       return (
-                        <li
-                          key={
-                            certificate._id || `${item.profile?._id}-${index}`
-                          }
-                          className="text-sm text-amber-700"
-                        >
+                        <li key={certificate._id || `${item.profile?._id}-${index}`} className="text-sm text-amber-600">
                           {fileName} (link unavailable)
                         </li>
                       );
                     }
-
                     return (
-                      <li
-                        key={certificate._id || `${item.profile?._id}-${index}`}
-                      >
+                      <li key={certificate._id || `${item.profile?._id}-${index}`}>
                         <a
-                          className="inline-flex items-center rounded-lg border border-cyan-200 px-3 py-1.5 text-sm font-medium text-cyan-800 hover:bg-cyan-50"
+                          className="btn-outline btn-sm inline-flex"
                           href={certificate.fileUrl}
                           rel="noopener noreferrer"
                           target="_blank"
@@ -141,13 +124,12 @@ const AdminVerifyPage = () => {
                 </ul>
               </div>
             ) : (
-              <p className="mt-2 text-sm text-amber-700">
-                No certificates uploaded yet.
-              </p>
+              <p className="mt-3 text-sm text-amber-600">No certificates uploaded yet.</p>
             )}
 
             <textarea
-              className="mt-3 w-full rounded-lg border border-cyan-200 px-3 py-2 text-sm"
+              className="app-input mt-4 resize-none"
+              rows="2"
               placeholder="Optional review note"
               value={noteByProfile[item.profile?._id] || ""}
               onChange={(event) =>
@@ -160,18 +142,18 @@ const AdminVerifyPage = () => {
 
             <div className="mt-3 flex flex-wrap gap-2">
               <button
-                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+                className="btn-primary btn-sm !bg-emerald-600 hover:!bg-emerald-700"
                 type="button"
                 onClick={() => handleDecision(item.profile?._id, "approved")}
               >
-                Approve
+                ✓ Approve
               </button>
               <button
-                className="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-700"
+                className="btn-danger btn-sm"
                 type="button"
                 onClick={() => handleDecision(item.profile?._id, "rejected")}
               >
-                Reject
+                ✗ Reject
               </button>
             </div>
           </article>
@@ -179,7 +161,7 @@ const AdminVerifyPage = () => {
       </div>
 
       {!loading && items.length === 0 ? (
-        <p className="text-sm text-slate-500">No pending verifications.</p>
+        <EmptyState title="Queue is clear" description="No pending verifications to review." />
       ) : null}
     </AdminShell>
   );

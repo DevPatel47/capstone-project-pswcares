@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
 import AdminShell from "../components/AdminShell";
+import LoadingState from "../components/LoadingState";
+import ErrorBanner from "../components/ErrorBanner";
+import Badge from "../components/ui/Badge";
+import EmptyState from "../components/ui/EmptyState";
 import { getAdminContacts, updateAdminContactStatus } from "../services/adminApi";
 
-const STATUS_COLORS = {
-  new: "bg-blue-100 text-blue-800",
-  read: "bg-slate-100 text-slate-700",
-  archived: "bg-slate-50 text-slate-400",
+const STATUS_BADGE = {
+  new: "info",
+  read: "neutral",
+  archived: "warning",
 };
 
 const AdminContactsPage = () => {
@@ -60,16 +64,16 @@ const AdminContactsPage = () => {
       subtitle="View and manage messages from the contact form."
     >
       {/* Filter tabs */}
-      <div className="flex flex-wrap gap-2 mb-6">
+      <div className="flex flex-wrap gap-1.5 mb-6">
         {["", "new", "read", "archived"].map((f) => (
           <button
             key={f}
             type="button"
             onClick={() => setFilter(f)}
-            className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+            className={`rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 ${
               filter === f
-                ? "bg-cyan-700 text-white"
-                : "bg-cyan-50 text-cyan-900 hover:bg-cyan-100"
+                ? "bg-brand-600 text-white shadow-md shadow-brand-600/20"
+                : "text-slate-600 hover:bg-brand-50 hover:text-brand-700"
             }`}
           >
             {f === "" ? "All" : f.charAt(0).toUpperCase() + f.slice(1)}
@@ -77,11 +81,11 @@ const AdminContactsPage = () => {
         ))}
       </div>
 
-      {loading && <p className="text-sm text-slate-500">Loading submissions...</p>}
-      {error && <p className="text-sm text-rose-600">{error}</p>}
+      {loading && <LoadingState label="Loading submissions..." />}
+      {error && <ErrorBanner message={error} />}
 
       {!loading && !error && contacts.length === 0 && (
-        <p className="text-sm text-slate-500">No contact submissions found.</p>
+        <EmptyState title="No submissions found" description="Try changing the filter or check back later." />
       )}
 
       {!loading && !error && contacts.length > 0 && (
@@ -89,23 +93,21 @@ const AdminContactsPage = () => {
           {contacts.map((contact) => (
             <article
               key={contact._id}
-              className="rounded-xl border border-cyan-100 bg-cyan-50/40 overflow-hidden"
+              className="rounded-xl border border-brand-100/60 overflow-hidden bg-white"
             >
               {/* Header row */}
               <button
                 type="button"
                 onClick={() => setExpandedId(expandedId === contact._id ? null : contact._id)}
-                className="w-full text-left p-4 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 hover:bg-cyan-50/80 transition"
+                className="w-full text-left p-4 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 hover:bg-brand-50/30 transition-all duration-200"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className={`inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold uppercase tracking-wider ${STATUS_COLORS[contact.status]}`}>
-                      {contact.status}
-                    </span>
+                    <Badge variant={STATUS_BADGE[contact.status]}>{contact.status}</Badge>
                     <span className="text-xs text-slate-400">{formatDate(contact.createdAt)}</span>
                   </div>
                   <p className="font-semibold text-slate-900 truncate">{contact.subject}</p>
-                  <p className="text-sm text-slate-600 truncate">
+                  <p className="text-sm text-slate-500 truncate">
                     From: {contact.name} &lt;{contact.email}&gt;
                   </p>
                 </div>
@@ -122,22 +124,22 @@ const AdminContactsPage = () => {
 
               {/* Expanded details */}
               {expandedId === contact._id && (
-                <div className="border-t border-cyan-100 p-4 bg-white">
+                <div className="border-t border-brand-100/60 p-5 bg-brand-50/10">
                   <div className="grid sm:grid-cols-2 gap-4 mb-4 text-sm">
                     <div>
-                      <p className="text-xs uppercase tracking-wider text-slate-400 mb-1">Name</p>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Name</p>
                       <p className="text-slate-900">{contact.name}</p>
                     </div>
                     <div>
-                      <p className="text-xs uppercase tracking-wider text-slate-400 mb-1">Email</p>
-                      <a href={`mailto:${contact.email}`} className="text-cyan-700 hover:underline">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Email</p>
+                      <a href={`mailto:${contact.email}`} className="text-brand-600 hover:text-brand-700 font-medium">
                         {contact.email}
                       </a>
                     </div>
                   </div>
                   <div className="mb-4">
-                    <p className="text-xs uppercase tracking-wider text-slate-400 mb-1">Message</p>
-                    <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed bg-slate-50 rounded-lg p-3">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Message</p>
+                    <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed bg-white rounded-xl p-4 border border-brand-100/60">
                       {contact.message}
                     </p>
                   </div>
@@ -149,10 +151,10 @@ const AdminContactsPage = () => {
                         type="button"
                         disabled={contact.status === s}
                         onClick={() => handleStatusChange(contact._id, s)}
-                        className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
+                        className={`rounded-xl px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
                           contact.status === s
-                            ? "bg-cyan-700 text-white cursor-default"
-                            : "bg-cyan-50 text-cyan-900 hover:bg-cyan-100"
+                            ? "bg-brand-600 text-white cursor-default"
+                            : "bg-white border border-brand-200 text-brand-700 hover:bg-brand-50"
                         }`}
                       >
                         {s.charAt(0).toUpperCase() + s.slice(1)}

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import PageTransition from "../components/ui/PageTransition";
 import { processPaymentCancelRequest } from "../services/paymentApi";
 
 const PaymentCancelPage = () => {
@@ -17,7 +18,6 @@ const PaymentCancelPage = () => {
 
     const run = async () => {
       setIsLoading(true);
-
       try {
         await processPaymentCancelRequest(sessionId);
         setMessage("Your payment session was cancelled safely.");
@@ -32,33 +32,31 @@ const PaymentCancelPage = () => {
   }, [searchParams]);
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(145deg,#f8fafc_0%,#ecfeff_55%,#f0f9ff_100%)] px-4 py-8">
-      <section className="mx-auto w-full max-w-2xl rounded-2xl border border-cyan-100 bg-white p-8 shadow-[0_20px_60px_-35px_rgba(6,182,212,0.45)]">
-        <p className="text-xs uppercase tracking-[0.2em] text-cyan-700">
-          Payment
-        </p>
-        <h1 className="mt-2 text-3xl font-semibold text-slate-900">
-          Checkout cancelled
-        </h1>
-        <p className="mt-4 text-sm text-slate-600">
-          {isLoading ? "Processing cancellation..." : message}
-        </p>
+    <main className="app-bg flex items-center justify-center px-4 py-12">
+      <PageTransition className="w-full max-w-xl">
+        <section className="app-card !p-8 text-center">
+          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-50">
+            <svg className="h-8 w-8 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </div>
 
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Link
-            className="rounded-lg bg-cyan-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-cyan-700"
-            to="/client/dashboard"
-          >
-            Return to dashboard
-          </Link>
-          <Link
-            className="rounded-lg border border-cyan-200 px-4 py-2 text-sm font-semibold text-cyan-800 transition hover:bg-cyan-50"
-            to="/client/psw-search"
-          >
-            Continue browsing PSWs
-          </Link>
-        </div>
-      </section>
+          <p className="page-label">Payment</p>
+          <h1 className="page-title !text-2xl !mt-1">Checkout cancelled</h1>
+          <p className="mt-3 text-sm text-slate-500">
+            {isLoading ? "Processing cancellation..." : message}
+          </p>
+
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <Link className="btn-primary" to="/client/dashboard">
+              Return to dashboard
+            </Link>
+            <Link className="btn-secondary" to="/client/psw-search">
+              Continue browsing
+            </Link>
+          </div>
+        </section>
+      </PageTransition>
     </main>
   );
 };

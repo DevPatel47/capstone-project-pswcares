@@ -1,30 +1,24 @@
-const badgeByStatus = {
-  approved: {
-    label: "Verified",
-    classes: "border-emerald-200 bg-emerald-50 text-emerald-700",
-  },
-  pending: {
-    label: "Pending Verification",
-    classes: "border-amber-200 bg-amber-50 text-amber-700",
-  },
-  rejected: {
-    label: "Verification Rejected",
-    classes: "border-rose-200 bg-rose-50 text-rose-700",
-  },
+import Badge from "./ui/Badge";
+
+const statusMap = {
+  verified: { variant: "success", label: "Verified" },
+  pending: { variant: "warning", label: "Pending" },
+  rejected: { variant: "danger", label: "Rejected" },
+  not_submitted: { variant: "neutral", label: "Not Submitted" },
 };
 
 const VerificationBadge = ({ status }) => {
-  const value = badgeByStatus[status] || {
-    label: "Unknown Status",
-    classes: "border-slate-200 bg-slate-50 text-slate-700",
-  };
+  const config = statusMap[status] || statusMap.not_submitted;
 
   return (
-    <span
-      className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${value.classes}`}
-    >
-      {value.label}
-    </span>
+    <Badge variant={config.variant}>
+      {status === "verified" && (
+        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+        </svg>
+      )}
+      {config.label}
+    </Badge>
   );
 };
 

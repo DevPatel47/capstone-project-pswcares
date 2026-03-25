@@ -1,25 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import Avatar from "../components/ui/Avatar";
+import Badge from "../components/ui/Badge";
+import PageTransition from "../components/ui/PageTransition";
+import EmptyState from "../components/ui/EmptyState";
 import { getMyAppointmentsRequest } from "../services/appointmentApi";
 import { getAuthSession } from "../services/authStorage";
 import { getMessagesByAppointmentRequest } from "../services/chatApi";
 import { createChatSocket } from "../services/chatSocket";
 
 const formatDateTime = (value) => {
-  if (!value) {
-    return "";
-  }
-
+  if (!value) return "";
   const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "";
-  }
-
-  return new Intl.DateTimeFormat("en-CA", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(date);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat("en-CA", { dateStyle: "medium", timeStyle: "short" }).format(date);
 };
 
 const ChatPage = () => {
@@ -49,14 +43,8 @@ const ChatPage = () => {
     const onConnect = () => setSocketConnected(true);
     const onDisconnect = () => setSocketConnected(false);
     const onReceiveMessage = (payload) => {
-      if (!payload?.appointmentId) {
-        return;
-      }
-
-      if (payload.appointmentId !== selectedAppointmentId) {
-        return;
-      }
-
+      if (!payload?.appointmentId) return;
+      if (payload.appointmentId !== selectedAppointmentId) return;
       setMessages((prev) => [...prev, payload]);
     };
 
@@ -76,12 +64,9 @@ const ChatPage = () => {
     const loadAppointments = async () => {
       setIsLoadingAppointments(true);
       setError("");
-
       try {
         const data = await getMyAppointmentsRequest();
-        const confirmed = (data.items || []).filter(
-          (item) => item.status === "confirmed",
-        );
+        const confirmed = (data.items || []).filter((item) => item.status === "confirmed");
         setAppointments(confirmed);
 
         if (!selectedAppointmentId && confirmed.length > 0) {
@@ -90,15 +75,11 @@ const ChatPage = () => {
           setSearchParams({ appointmentId: firstId });
         }
       } catch (requestError) {
-        setError(
-          requestError.response?.data?.message ||
-            "Unable to load confirmed appointments.",
-        );
+        setError(requestError.response?.data?.message || "Unable to load confirmed appointments.");
       } finally {
         setIsLoadingAppointments(false);
       }
     };
-
     loadAppointments();
   }, []);
 
@@ -107,231 +88,177 @@ const ChatPage = () => {
       setMessages([]);
       return;
     }
-
     const loadMessages = async () => {
       setIsLoadingMessages(true);
       setError("");
-
       try {
-        const data = await getMessagesByAppointmentRequest(
-          selectedAppointmentId,
-        );
+        const data = await getMessagesByAppointmentRequest(selectedAppointmentId);
         setMessages(data.items || []);
       } catch (requestError) {
-        setError(
-          requestError.response?.data?.message || "Unable to load messages.",
-        );
+        setError(requestError.response?.data?.message || "Unable to load messages.");
         setMessages([]);
       } finally {
         setIsLoadingMessages(false);
       }
     };
-
     loadMessages();
   }, [selectedAppointmentId]);
 
   useEffect(() => {
-    if (!listRef.current) {
-      return;
-    }
-
+    if (!listRef.current) return;
     listRef.current.scrollTop = listRef.current.scrollHeight;
   }, [messages]);
 
   const selectedAppointment = useMemo(() => {
-    return (
-      appointments.find(
-        (item) => String(item._id) === String(selectedAppointmentId),
-      ) || null
-    );
+    return appointments.find((item) => String(item._id) === String(selectedAppointmentId)) || null;
   }, [appointments, selectedAppointmentId]);
 
-  const handleAppointmentChange = (event) => {
-    const value = event.target.value;
-    setSelectedAppointmentId(value);
-
-    if (value) {
-      setSearchParams({ appointmentId: value });
-    } else {
-      setSearchParams({});
-    }
+  const handleAppointmentSelect = (id) => {
+    setSelectedAppointmentId(id);
+    if (id) setSearchParams({ appointmentId: id });
+    else setSearchParams({});
   };
 
   const handleSend = () => {
     const safeContent = input.trim();
-
-    if (!safeContent || !selectedAppointmentId || !socketRef.current) {
-      return;
-    }
+    if (!safeContent || !selectedAppointmentId || !socketRef.current) return;
 
     socketRef.current.emit(
       "send_message",
-      {
-        appointmentId: selectedAppointmentId,
-        content: safeContent,
-      },
+      { appointmentId: selectedAppointmentId, content: safeContent },
       (response) => {
         if (!response?.ok) {
           setError(response?.error || "Unable to send message.");
           return;
         }
-
         setInput("");
       },
     );
   };
 
   const getPeerName = (appointment) => {
-    if (!appointment) {
-      return "Conversation";
-    }
-
-    if (currentRole === "client") {
-      return appointment.pswId?.name || "PSW";
-    }
-
+    if (!appointment) return "Conversation";
+    if (currentRole === "client") return appointment.pswId?.name || "PSW";
     return appointment.clientId?.name || "Client";
   };
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(145deg,#f8fafc_0%,#ecfeff_55%,#f0f9ff_100%)] px-4 py-8">
-      <section className="mx-auto w-full max-w-6xl space-y-6">
-        <header className="rounded-2xl border border-cyan-100 bg-white p-6 shadow-[0_20px_60px_-35px_rgba(6,182,212,0.45)]">
-          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-            <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-cyan-700">
-                PSWCares Chat
-              </p>
-              <h1 className="mt-2 text-3xl font-semibold text-slate-900">
-                Messages
-              </h1>
-              <p className="mt-1 text-slate-600">
-                WhatsApp-style real-time chat for confirmed appointments.
-              </p>
+    <main className="app-bg px-4 py-6">
+      <PageTransition className="mx-auto w-full max-w-6xl space-y-5">
+        {/* Header */}
+        <header className="app-card !py-4">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-400 to-accent-400 flex items-center justify-center">
+                <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
+                </svg>
+              </div>
+              <div>
+                <h1 className="text-lg font-bold text-slate-900">Messages</h1>
+                <p className="text-xs text-slate-500">Real-time chat for confirmed appointments</p>
+              </div>
             </div>
             <div className="flex items-center gap-3">
-              <span
-                className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                  socketConnected
-                    ? "bg-emerald-50 text-emerald-700"
-                    : "bg-amber-50 text-amber-700"
-                }`}
-              >
+              <Badge variant={socketConnected ? "success" : "warning"}>
                 {socketConnected ? "Live" : "Connecting..."}
-              </span>
+              </Badge>
               <Link
-                className="text-sm font-medium text-cyan-700 hover:text-cyan-900"
-                to={
-                  currentRole === "psw" ? "/psw/dashboard" : "/client/dashboard"
-                }
+                className="btn-outline btn-sm"
+                to={currentRole === "psw" ? "/psw/dashboard" : "/client/dashboard"}
               >
-                Back to dashboard
+                ← Dashboard
               </Link>
             </div>
           </div>
         </header>
 
-        <section className="grid min-h-[68vh] grid-cols-1 gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
-          <aside className="rounded-2xl border border-cyan-100 bg-white p-4 shadow-[0_20px_60px_-35px_rgba(6,182,212,0.45)]">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-700">
-              Confirmed Appointments
-            </h2>
+        {/* Chat layout */}
+        <section className="grid min-h-[68vh] grid-cols-1 gap-4 lg:grid-cols-[300px_minmax(0,1fr)]">
+          {/* Sidebar */}
+          <aside className="app-card !p-3 flex flex-col gap-2 overflow-y-auto">
+            <p className="px-2 text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Conversations</p>
 
             {isLoadingAppointments ? (
-              <p className="mt-3 text-sm text-slate-600">Loading...</p>
+              <p className="px-2 text-sm text-slate-500">Loading...</p>
             ) : null}
 
             {!isLoadingAppointments && appointments.length === 0 ? (
-              <p className="mt-3 text-sm text-slate-600">
-                No confirmed appointments found.
-              </p>
+              <p className="px-2 text-sm text-slate-500">No confirmed appointments found.</p>
             ) : null}
 
-            <select
-              className="mt-3 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none ring-cyan-200 transition focus:ring"
-              onChange={handleAppointmentChange}
-              value={selectedAppointmentId}
-            >
-              <option value="">Select appointment</option>
-              {appointments.map((appointment) => {
-                const datePart = new Date(
-                  appointment.appointmentDate,
-                ).toLocaleDateString();
-                return (
-                  <option key={appointment._id} value={appointment._id}>
-                    {getPeerName(appointment)} - {datePart}{" "}
-                    {appointment.appointmentTime}
-                  </option>
-                );
-              })}
-            </select>
-
-            {selectedAppointment ? (
-              <div className="mt-4 rounded-xl border border-cyan-100 bg-cyan-50 p-3 text-xs text-slate-700">
-                <p className="font-semibold text-slate-900">
-                  Chat with {getPeerName(selectedAppointment)}
-                </p>
-                <p className="mt-1">
-                  Date:{" "}
-                  {new Date(
-                    selectedAppointment.appointmentDate,
-                  ).toLocaleDateString()}
-                </p>
-                <p className="mt-1">
-                  Time: {selectedAppointment.appointmentTime}
-                </p>
-              </div>
-            ) : null}
+            {appointments.map((apt) => {
+              const isActive = String(apt._id) === String(selectedAppointmentId);
+              const peerName = getPeerName(apt);
+              return (
+                <button
+                  key={apt._id}
+                  type="button"
+                  onClick={() => handleAppointmentSelect(apt._id)}
+                  className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all duration-200 ${
+                    isActive
+                      ? "bg-brand-600 text-white shadow-md shadow-brand-600/20"
+                      : "text-slate-700 hover:bg-brand-50"
+                  }`}
+                >
+                  <Avatar name={peerName} size="sm" />
+                  <div className="min-w-0 flex-1">
+                    <p className={`text-sm font-semibold truncate ${isActive ? "text-white" : "text-slate-900"}`}>
+                      {peerName}
+                    </p>
+                    <p className={`text-xs truncate ${isActive ? "text-brand-100" : "text-slate-400"}`}>
+                      {new Date(apt.appointmentDate).toLocaleDateString()} · {apt.appointmentTime}
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
           </aside>
 
-          <section className="flex flex-col rounded-2xl border border-cyan-100 bg-white shadow-[0_20px_60px_-35px_rgba(6,182,212,0.45)]">
-            <div className="border-b border-cyan-100 px-5 py-3">
-              <p className="text-sm font-semibold text-slate-900">
-                {selectedAppointment
-                  ? getPeerName(selectedAppointment)
-                  : "Select an appointment to start chat"}
-              </p>
+          {/* Messages */}
+          <section className="flex flex-col app-card !p-0 overflow-hidden">
+            {/* Chat header */}
+            <div className="border-b border-brand-100/60 px-5 py-3 flex items-center gap-3">
+              {selectedAppointment ? (
+                <>
+                  <Avatar name={getPeerName(selectedAppointment)} size="sm" />
+                  <p className="text-sm font-semibold text-slate-900">{getPeerName(selectedAppointment)}</p>
+                </>
+              ) : (
+                <p className="text-sm text-slate-500">Select a conversation to start</p>
+              )}
             </div>
 
+            {/* Message list */}
             <div
-              className="flex-1 space-y-2 overflow-y-auto bg-[linear-gradient(180deg,#f8fafc_0%,#ecfeff_100%)] p-4"
+              className="flex-1 space-y-2 overflow-y-auto bg-gradient-to-b from-white to-brand-50/30 p-4"
               ref={listRef}
             >
               {isLoadingMessages ? (
-                <p className="text-sm text-slate-600">Loading messages...</p>
+                <p className="text-sm text-slate-500">Loading messages...</p>
               ) : null}
 
               {!isLoadingMessages && messages.length === 0 ? (
-                <p className="text-sm text-slate-600">
-                  No messages yet. Start the conversation.
-                </p>
+                <EmptyState
+                  title="No messages yet"
+                  description="Start the conversation by sending a message below."
+                />
               ) : null}
 
               {!isLoadingMessages
                 ? messages.map((message) => {
-                    const mine =
-                      String(message.senderId) === String(currentUserId);
-
+                    const mine = String(message.senderId) === String(currentUserId);
                     return (
-                      <div
-                        className={`flex ${mine ? "justify-end" : "justify-start"}`}
-                        key={message._id}
-                      >
+                      <div className={`flex ${mine ? "justify-end" : "justify-start"}`} key={message._id}>
                         <article
-                          className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm shadow-sm ${
+                          className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm shadow-sm ${
                             mine
-                              ? "rounded-br-sm bg-cyan-600 text-white"
-                              : "rounded-bl-sm border border-slate-200 bg-white text-slate-800"
+                              ? "rounded-br-md bg-brand-600 text-white"
+                              : "rounded-bl-md border border-brand-100/60 bg-white text-slate-800"
                           }`}
                         >
-                          <p className="whitespace-pre-wrap break-words">
-                            {message.content}
-                          </p>
-                          <p
-                            className={`mt-1 text-[11px] ${
-                              mine ? "text-cyan-100" : "text-slate-400"
-                            }`}
-                          >
+                          <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                          <p className={`mt-1 text-[11px] ${mine ? "text-brand-200" : "text-slate-400"}`}>
                             {formatDateTime(message.createdAt)}
                           </p>
                         </article>
@@ -341,44 +268,41 @@ const ChatPage = () => {
                 : null}
             </div>
 
-            <div className="border-t border-cyan-100 p-3">
+            {/* Input */}
+            <div className="border-t border-brand-100/60 p-3">
               {error ? (
-                <p className="mb-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">
-                  {error}
-                </p>
+                <p className="mb-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">{error}</p>
               ) : null}
 
               <div className="flex items-center gap-2">
                 <input
-                  className="w-full rounded-full border border-slate-300 bg-white px-4 py-2 text-sm outline-none ring-cyan-200 transition focus:ring"
+                  className="app-input !rounded-full"
                   disabled={!selectedAppointmentId}
-                  onChange={(event) => setInput(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") {
-                      event.preventDefault();
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
                       handleSend();
                     }
                   }}
-                  placeholder={
-                    selectedAppointmentId
-                      ? "Type a message..."
-                      : "Select appointment to start messaging"
-                  }
+                  placeholder={selectedAppointmentId ? "Type a message..." : "Select a conversation first"}
                   value={input}
                 />
                 <button
-                  className="rounded-full bg-cyan-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="btn-primary !rounded-full !px-5 !py-3"
                   disabled={!selectedAppointmentId || !input.trim()}
                   onClick={handleSend}
                   type="button"
                 >
-                  Send
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                  </svg>
                 </button>
               </div>
             </div>
           </section>
         </section>
-      </section>
+      </PageTransition>
     </main>
   );
 };

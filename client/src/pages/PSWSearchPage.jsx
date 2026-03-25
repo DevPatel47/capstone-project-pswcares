@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import VerificationBadge from "../components/VerificationBadge";
+import Avatar from "../components/ui/Avatar";
+import PageTransition from "../components/ui/PageTransition";
+import EmptyState from "../components/ui/EmptyState";
 import { searchPSWsRequest } from "../services/pswProfileApi";
 
 const defaultFilters = {
@@ -75,23 +78,10 @@ const PSWSearchPage = () => {
 
   const updateSearchParams = (nextFilters, page = 1) => {
     const next = {};
-
-    if (nextFilters.city.trim()) {
-      next.location = nextFilters.city.trim();
-    }
-
-    if (nextFilters.service.trim()) {
-      next.service = nextFilters.service.trim();
-    }
-
-    if (nextFilters.experience.trim()) {
-      next.experience = nextFilters.experience.trim();
-    }
-
-    if (page > 1) {
-      next.page = String(page);
-    }
-
+    if (nextFilters.city.trim()) next.location = nextFilters.city.trim();
+    if (nextFilters.service.trim()) next.service = nextFilters.service.trim();
+    if (nextFilters.experience.trim()) next.experience = nextFilters.experience.trim();
+    if (page > 1) next.page = String(page);
     setSearchParams(next);
   };
 
@@ -111,57 +101,46 @@ const PSWSearchPage = () => {
   };
 
   const handlePageChange = (nextPage) => {
-    if (nextPage < 1 || nextPage > pagination.totalPages) {
-      return;
-    }
-
+    if (nextPage < 1 || nextPage > pagination.totalPages) return;
     updateSearchParams(filters, nextPage);
   };
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(145deg,#f8fafc_0%,#ecfeff_55%,#f0f9ff_100%)] px-4 py-8">
-      <section className="mx-auto w-full max-w-7xl space-y-6">
-        <header className="rounded-2xl border border-cyan-100 bg-white p-6 shadow-[0_20px_60px_-35px_rgba(6,182,212,0.45)]">
+    <main className="app-bg px-4 py-8">
+      <PageTransition className="mx-auto w-full max-w-7xl space-y-6">
+        {/* Header + Search */}
+        <header className="app-card">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-cyan-700">
-                PSWCares Marketplace
-              </p>
-              <h1 className="mt-2 text-3xl font-semibold text-slate-900">
-                Find verified PSWs
-              </h1>
-              <p className="mt-1 text-slate-600">
-                Search trusted support workers by city, service, and experience.
-              </p>
+              <p className="page-label">Marketplace</p>
+              <h1 className="page-title">Find verified PSWs</h1>
+              <p className="page-subtitle">Search trusted support workers by city, service, and experience.</p>
             </div>
-            <Link
-              className="text-sm font-medium text-cyan-700 hover:text-cyan-900"
-              to="/client/dashboard"
-            >
-              Back to dashboard
+            <Link className="btn-outline btn-sm" to="/client/dashboard">
+              ← Dashboard
             </Link>
           </div>
 
           <form
-            className="mt-6 grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_180px_auto_auto]"
+            className="mt-6 grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_140px_auto_auto]"
             onSubmit={handleSearchSubmit}
           >
             <input
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none ring-cyan-200 transition focus:ring"
+              className="app-input"
               name="city"
               onChange={handleFilterChange}
               placeholder="City (e.g. Toronto)"
               value={filters.city}
             />
             <input
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none ring-cyan-200 transition focus:ring"
+              className="app-input"
               name="service"
               onChange={handleFilterChange}
               placeholder="Service (e.g. Elderly care)"
               value={filters.service}
             />
             <input
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none ring-cyan-200 transition focus:ring"
+              className="app-input"
               min="0"
               name="experience"
               onChange={handleFilterChange}
@@ -169,117 +148,78 @@ const PSWSearchPage = () => {
               type="number"
               value={filters.experience}
             />
-            <button
-              className="rounded-lg bg-cyan-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-cyan-700"
-              type="submit"
-            >
-              Search
-            </button>
-            <button
-              className="rounded-lg border border-cyan-200 px-4 py-2 text-sm font-semibold text-cyan-800 transition hover:bg-cyan-50"
-              onClick={handleClear}
-              type="button"
-            >
-              Clear
-            </button>
+            <button className="btn-primary btn-sm" type="submit">Search</button>
+            <button className="btn-outline btn-sm" onClick={handleClear} type="button">Clear</button>
           </form>
         </header>
 
         {error ? (
-          <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-            {error}
-          </div>
+          <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>
         ) : null}
 
-        <div className="flex items-center justify-between text-sm text-slate-600">
-          <p>
-            {isLoading
-              ? "Searching..."
-              : `${pagination.total} verified PSW(s) found`}
-          </p>
-          <p>
-            Page {pagination.page} of {pagination.totalPages}
-          </p>
+        {/* Results info */}
+        <div className="flex items-center justify-between text-sm text-slate-500">
+          <p>{isLoading ? "Searching..." : `${pagination.total} verified PSW(s) found`}</p>
+          <p>Page {pagination.page} of {pagination.totalPages}</p>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {/* Grid */}
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
           {isLoading
-            ? Array.from({ length: 6 }).map((_, index) => (
-                <article
-                  className="h-52 animate-pulse rounded-2xl border border-cyan-100 bg-white"
-                  key={`skeleton-${index}`}
-                />
+            ? Array.from({ length: 6 }).map((_, i) => (
+                <div className="h-56 animate-pulse rounded-2xl border border-brand-100/60 bg-white" key={`sk-${i}`} />
               ))
             : null}
 
           {!isLoading && results.length === 0 ? (
-            <article className="col-span-full rounded-2xl border border-cyan-100 bg-white p-8 text-center">
-              <h2 className="text-lg font-semibold text-slate-900">
-                No PSWs match this search
-              </h2>
-              <p className="mt-2 text-sm text-slate-600">
-                Try a different city, service, or lower experience filter.
-              </p>
-            </article>
+            <div className="col-span-full">
+              <EmptyState
+                title="No PSWs match this search"
+                description="Try a different city, service, or lower the experience filter."
+              />
+            </div>
           ) : null}
 
           {!isLoading
-            ? results.map((item) => {
-                const profile = item;
+            ? results.map((profile) => {
                 const providerName = profile.userId?.name || "Verified PSW";
-
                 return (
                   <article
-                    className="flex h-full flex-col justify-between rounded-2xl border border-cyan-100 bg-white p-5 shadow-[0_20px_40px_-35px_rgba(6,182,212,0.45)]"
+                    className="flex h-full flex-col justify-between app-card-hover !p-0 overflow-hidden"
                     key={profile._id}
                   >
-                    <div>
+                    <div className="p-5">
                       <div className="flex items-start justify-between gap-3">
-                        <h2 className="text-lg font-semibold text-slate-900">
-                          {providerName}
-                        </h2>
-                        <VerificationBadge
-                          status={profile.verificationStatus}
-                        />
+                        <div className="flex items-center gap-3">
+                          <Avatar name={providerName} size="md" />
+                          <div>
+                            <h2 className="text-base font-bold text-slate-900">{providerName}</h2>
+                            <p className="text-xs text-slate-500">{profile.location}</p>
+                          </div>
+                        </div>
+                        <VerificationBadge status={profile.verificationStatus} />
                       </div>
 
-                      <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-700">
+                      <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-slate-500">
                         {profile.bio || "No bio available."}
                       </p>
 
-                      <div className="mt-4 flex flex-wrap gap-2">
+                      <div className="mt-3 flex flex-wrap gap-1.5">
                         {(profile.services || []).slice(0, 3).map((service) => (
-                          <span
-                            className="rounded-full border border-cyan-100 bg-cyan-50 px-2.5 py-1 text-xs font-medium text-cyan-800"
-                            key={`${profile._id}-${service}`}
-                          >
+                          <span className="badge-info" key={`${profile._id}-${service}`}>
                             {service}
                           </span>
                         ))}
                       </div>
                     </div>
 
-                    <div className="mt-5 space-y-2 text-sm text-slate-700">
-                      <p>
-                        <span className="font-semibold text-slate-900">
-                          City:
-                        </span>{" "}
-                        {profile.location}
-                      </p>
-                      <p>
-                        <span className="font-semibold text-slate-900">
-                          Experience:
-                        </span>{" "}
-                        {profile.experience} years
-                      </p>
-                      <p>
-                        <span className="font-semibold text-slate-900">
-                          Rate:
-                        </span>{" "}
-                        ${profile.hourlyRate}/hr
-                      </p>
+                    <div className="border-t border-brand-100/60 p-4 bg-brand-50/20 flex items-center justify-between">
+                      <div className="flex gap-4 text-xs text-slate-600">
+                        <span><span className="font-semibold text-slate-900">{profile.experience}</span> yrs exp</span>
+                        <span><span className="font-semibold text-slate-900">${profile.hourlyRate}</span>/hr</span>
+                      </div>
                       <Link
-                        className="mt-2 inline-block w-full rounded-lg bg-cyan-600 px-4 py-2 text-center text-sm font-semibold text-white transition hover:bg-cyan-700"
+                        className="btn-primary btn-sm !px-4"
                         state={{ profile }}
                         to={`/client/psw-profiles/${profile._id}`}
                       >
@@ -292,17 +232,21 @@ const PSWSearchPage = () => {
             : null}
         </div>
 
+        {/* Pagination */}
         <div className="flex items-center justify-center gap-2">
           <button
-            className="rounded-lg border border-cyan-200 px-3 py-2 text-sm font-medium text-cyan-800 transition hover:bg-cyan-50 disabled:cursor-not-allowed disabled:opacity-50"
+            className="btn-outline btn-sm"
             disabled={pagination.page <= 1 || isLoading}
             onClick={() => handlePageChange(pagination.page - 1)}
             type="button"
           >
             Previous
           </button>
+          <span className="text-sm text-slate-500 px-3">
+            {pagination.page} / {pagination.totalPages}
+          </span>
           <button
-            className="rounded-lg border border-cyan-200 px-3 py-2 text-sm font-medium text-cyan-800 transition hover:bg-cyan-50 disabled:cursor-not-allowed disabled:opacity-50"
+            className="btn-outline btn-sm"
             disabled={pagination.page >= pagination.totalPages || isLoading}
             onClick={() => handlePageChange(pagination.page + 1)}
             type="button"
@@ -310,7 +254,7 @@ const PSWSearchPage = () => {
             Next
           </button>
         </div>
-      </section>
+      </PageTransition>
     </main>
   );
 };

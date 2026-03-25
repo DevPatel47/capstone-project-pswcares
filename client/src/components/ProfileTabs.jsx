@@ -1,4 +1,4 @@
-const tabConfig = [
+const tabs = [
   { id: "about", label: "About" },
   { id: "services", label: "Services" },
   { id: "certificates", label: "Certificates" },
@@ -7,28 +7,28 @@ const tabConfig = [
 
 const ProfileTabs = ({ activeTab, onChange }) => {
   return (
-    <div className="overflow-x-auto">
-      <div className="inline-flex min-w-full gap-2 rounded-xl border border-cyan-100 bg-white p-2">
-        {tabConfig.map((tab) => {
+    <nav className="app-card !p-1.5">
+      <ul className="flex flex-wrap gap-1">
+        {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
-
           return (
-            <button
-              key={tab.id}
-              className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-                isActive
-                  ? "bg-cyan-600 text-white"
-                  : "text-slate-600 hover:bg-cyan-50 hover:text-cyan-900"
-              }`}
-              onClick={() => onChange(tab.id)}
-              type="button"
-            >
-              {tab.label}
-            </button>
+            <li key={tab.id}>
+              <button
+                type="button"
+                onClick={() => onChange(tab.id)}
+                className={`rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-200 ${
+                  isActive
+                    ? "bg-brand-600 text-white shadow-md shadow-brand-600/20"
+                    : "text-slate-600 hover:bg-brand-50 hover:text-brand-700"
+                }`}
+              >
+                {tab.label}
+              </button>
+            </li>
           );
         })}
-      </div>
-    </div>
+      </ul>
+    </nav>
   );
 };
 

@@ -9,3 +9,8 @@ export const getMyAppointmentsRequest = async () => {
   const response = await api.get("/appointments/me");
   return response.data;
 };
+
+export const updateBookingStatusRequest = async (appointmentId, status) => {
+  const response = await api.patch(`/appointments/${appointmentId}/status`, { status });
+  return response.data;
+};

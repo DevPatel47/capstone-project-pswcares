@@ -1,16 +1,11 @@
 const LoadingState = ({ label = "Loading...", compact = false }) => {
   return (
-    <div
-      className={`flex items-center gap-2 text-slate-600 ${
-        compact
-          ? "text-sm"
-          : "rounded-lg border border-cyan-100 bg-cyan-50 px-3 py-2 text-sm"
-      }`}
-      role="status"
-      aria-live="polite"
-    >
-      <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-cyan-300 border-t-cyan-700" />
-      <span>{label}</span>
+    <div className={`flex items-center gap-3 ${compact ? "py-2" : "justify-center py-12"}`}>
+      <div className="relative h-5 w-5">
+        <div className="absolute inset-0 rounded-full border-2 border-brand-100" />
+        <div className="absolute inset-0 animate-spin rounded-full border-2 border-transparent border-t-brand-500" />
+      </div>
+      <p className="text-sm font-medium text-slate-500">{label}</p>
     </div>
   );
 };
