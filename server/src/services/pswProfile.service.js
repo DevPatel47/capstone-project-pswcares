@@ -1,5 +1,6 @@
 import Certificate from "../models/certificate.model.js";
 import PSWProfile from "../models/pswProfile.model.js";
+import { AVAILABILITY_DAYS } from "../models/pswProfile.model.js";
 import { getSignedS3ReadUrl } from "../config/s3.js";
 import { uploadFileToS3 } from "./upload.service.js";
 import { createHttpError } from "../utils/httpError.js";
@@ -45,12 +46,66 @@ const normalizeServices = (services) => {
   return [];
 };
 
+const isValidTime = (value) =>
+  /^([01]\d|2[0-3]):([0-5]\d)$/.test(String(value || ""));
+
+const timeToMinutes = (value) => {
+  const [hours, minutes] = String(value).split(":").map(Number);
+  return hours * 60 + minutes;
+};
+
+const normalizeAvailability = (availability) => {
+  if (!availability) {
+    return [];
+  }
+
+  if (!Array.isArray(availability)) {
+    throw createHttpError(400, "availability must be an array of time slots.");
+  }
+
+  const normalized = availability
+    .map((slot) => ({
+      dayOfWeek: String(slot?.dayOfWeek || "")
+        .trim()
+        .toLowerCase(),
+      startTime: String(slot?.startTime || "").trim(),
+      endTime: String(slot?.endTime || "").trim(),
+    }))
+    .filter((slot) => slot.dayOfWeek || slot.startTime || slot.endTime);
+
+  for (const slot of normalized) {
+    if (!AVAILABILITY_DAYS.includes(slot.dayOfWeek)) {
+      throw createHttpError(
+        400,
+        `Invalid availability day: ${slot.dayOfWeek || "unknown"}.`,
+      );
+    }
+
+    if (!isValidTime(slot.startTime) || !isValidTime(slot.endTime)) {
+      throw createHttpError(
+        400,
+        "availability startTime/endTime must use HH:mm format.",
+      );
+    }
+
+    if (timeToMinutes(slot.endTime) <= timeToMinutes(slot.startTime)) {
+      throw createHttpError(
+        400,
+        "availability endTime must be later than startTime.",
+      );
+    }
+  }
+
+  return normalized;
+};
+
 const validateProfilePayload = ({
   bio,
   services,
   hourlyRate,
   experience,
   location,
+  availability,
 }) => {
   if (typeof bio !== "undefined" && String(bio).trim().length > 2000) {
     throw createHttpError(400, "Bio cannot exceed 2000 characters.");
@@ -70,12 +125,15 @@ const validateProfilePayload = ({
     throw createHttpError(400, "location is required.");
   }
 
+  const normalizedAvailability = normalizeAvailability(availability);
+
   return {
     bio: String(bio || "").trim(),
     services: normalizedServices,
     hourlyRate: Number(hourlyRate),
     experience: Number(experience),
     location: String(location).trim(),
+    availability: normalizedAvailability,
   };
 };
 
@@ -85,25 +143,41 @@ export const upsertPSWProfile = async ({ userId, payload }) => {
   }
 
   const validated = validateProfilePayload(payload);
+  const existingProfile = await PSWProfile.findOne({ userId });
 
-  const profile = await PSWProfile.findOneAndUpdate(
-    { userId },
-    {
+  if (!existingProfile) {
+    const created = await PSWProfile.create({
+      userId,
       ...validated,
       verificationStatus: "pending",
       verificationNote: "",
       verifiedBy: null,
       verifiedAt: null,
-    },
-    {
-      new: true,
-      upsert: true,
-      runValidators: true,
-      setDefaultsOnInsert: true,
-    },
-  );
+    });
 
-  return profile;
+    return created;
+  }
+
+  const coreProfileChanged =
+    existingProfile.bio !== validated.bio ||
+    Number(existingProfile.hourlyRate) !== Number(validated.hourlyRate) ||
+    Number(existingProfile.experience) !== Number(validated.experience) ||
+    existingProfile.location !== validated.location ||
+    JSON.stringify(existingProfile.services || []) !==
+      JSON.stringify(validated.services || []);
+
+  existingProfile.set(validated);
+
+  if (coreProfileChanged && existingProfile.verificationStatus !== "pending") {
+    existingProfile.verificationStatus = "pending";
+    existingProfile.verificationNote = "";
+    existingProfile.verifiedBy = null;
+    existingProfile.verifiedAt = null;
+  }
+
+  await existingProfile.save();
+
+  return existingProfile;
 };
 
 export const getPSWProfileWithCertificates = async ({ userId }) => {

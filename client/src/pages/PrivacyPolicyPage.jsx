@@ -1,6 +1,3 @@
-import Navbar from "../components/landing/Navbar";
-import Footer from "../components/landing/Footer";
-
 const sections = [
   {
     title: "1. Information We Collect",
@@ -69,44 +66,49 @@ const sections = [
 
 const PrivacyPolicyPage = () => {
   return (
-    <div className="min-h-screen bg-white">
-      <Navbar />
-      <main className="pt-24 pb-20">
-        <div className="container-max section-padding !pt-8">
-          <div className="max-w-3xl mx-auto">
-            <p className="text-sm font-semibold text-brand-600 uppercase tracking-widest mb-3">Legal</p>
-            <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 leading-tight mb-4">
-              Privacy Policy
-            </h1>
-            <p className="text-sm text-slate-500 mb-10">Last updated: March 25, 2026</p>
+    <main className="py-16">
+      <div className="container-max section-padding !py-8">
+        <div className="max-w-3xl mx-auto">
+          <p className="text-sm font-semibold text-brand-600 uppercase tracking-widest mb-3">
+            Legal
+          </p>
+          <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 leading-tight mb-4">
+            Privacy Policy
+          </h1>
+          <p className="text-sm text-slate-500 mb-10">
+            Last updated: March 25, 2026
+          </p>
 
-            <div className="prose prose-slate max-w-none">
-              <p className="text-slate-600 leading-relaxed mb-10">
-                At PSWCares, we are committed to protecting your privacy. This Privacy Policy explains
-                how we collect, use, and safeguard your information when you use our platform.
-              </p>
+          <div className="prose prose-slate max-w-none">
+            <p className="text-slate-600 leading-relaxed mb-10">
+              At PSWCares, we are committed to protecting your privacy. This
+              Privacy Policy explains how we collect, use, and safeguard your
+              information when you use our platform.
+            </p>
 
-              <div className="space-y-10">
-                {sections.map((section) => (
-                  <div key={section.title}>
-                    <h2 className="text-xl font-bold text-slate-900 mb-4">{section.title}</h2>
-                    <ul className="space-y-3">
-                      {section.content.map((item, i) => (
-                        <li key={i} className="flex items-start gap-3">
-                          <span className="mt-2 w-1.5 h-1.5 rounded-full bg-brand-400 flex-shrink-0" />
-                          <span className="text-slate-600 leading-relaxed">{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </div>
+            <div className="space-y-10">
+              {sections.map((section) => (
+                <div key={section.title}>
+                  <h2 className="text-xl font-bold text-slate-900 mb-4">
+                    {section.title}
+                  </h2>
+                  <ul className="space-y-3">
+                    {section.content.map((item, i) => (
+                      <li key={i} className="flex items-start gap-3">
+                        <span className="mt-2 w-1.5 h-1.5 rounded-full bg-brand-400 flex-shrink-0" />
+                        <span className="text-slate-600 leading-relaxed">
+                          {item}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
             </div>
           </div>
         </div>
-      </main>
-      <Footer />
-    </div>
+      </div>
+    </main>
   );
 };
 

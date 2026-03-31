@@ -36,8 +36,8 @@ export const env = {
   stripeSecretKey: process.env.STRIPE_SECRET_KEY || "",
   stripeSuccessUrl:
     process.env.STRIPE_SUCCESS_URL ||
-    `${process.env.SERVER_ORIGIN || `http://localhost:${Number(process.env.PORT ?? 5000)}`}/api/payments/success`,
+    `${process.env.CLIENT_ORIGIN || "http://localhost:5173"}/client/payment/success`,
   stripeCancelUrl:
     process.env.STRIPE_CANCEL_URL ||
-    `${process.env.SERVER_ORIGIN || `http://localhost:${Number(process.env.PORT ?? 5000)}`}/api/payments/cancel`,
+    `${process.env.CLIENT_ORIGIN || "http://localhost:5173"}/client/payment/cancel`,
 };

@@ -1,6 +1,38 @@
 import mongoose from "mongoose";
 
 export const PSW_VERIFICATION_STATUSES = ["pending", "approved", "rejected"];
+export const AVAILABILITY_DAYS = [
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+  "sunday",
+];
+
+const availabilitySlotSchema = new mongoose.Schema(
+  {
+    dayOfWeek: {
+      type: String,
+      enum: AVAILABILITY_DAYS,
+      required: true,
+    },
+    startTime: {
+      type: String,
+      required: true,
+      match: [/^([01]\d|2[0-3]):([0-5]\d)$/, "Time must be in HH:mm format"],
+    },
+    endTime: {
+      type: String,
+      required: true,
+      match: [/^([01]\d|2[0-3]):([0-5]\d)$/, "Time must be in HH:mm format"],
+    },
+  },
+  {
+    _id: false,
+  },
+);
 
 const pswProfileSchema = new mongoose.Schema(
   {
@@ -36,6 +68,10 @@ const pswProfileSchema = new mongoose.Schema(
       required: true,
       trim: true,
       maxlength: 250,
+    },
+    availability: {
+      type: [availabilitySlotSchema],
+      default: [],
     },
     averageRating: {
       type: Number,

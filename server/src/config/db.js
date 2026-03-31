@@ -20,10 +20,27 @@ const cleanupLegacyPSWProfileIndexes = async () => {
   );
 };
 
+const cleanupLegacyPaymentIndexes = async () => {
+  const collection = mongoose.connection.collection("payments");
+
+  try {
+    await collection.dropIndex("appointment_1");
+    console.log("Dropped legacy payments index: appointment_1");
+  } catch (error) {
+    if (
+      error?.codeName !== "IndexNotFound" &&
+      error?.codeName !== "NamespaceNotFound"
+    ) {
+      throw error;
+    }
+  }
+};
+
 export const connectDatabase = async () => {
   try {
     await mongoose.connect(env.mongoUri);
     await cleanupLegacyPSWProfileIndexes();
+    await cleanupLegacyPaymentIndexes();
     console.log("MongoDB connected");
   } catch (error) {
     console.error("MongoDB connection failed", error);

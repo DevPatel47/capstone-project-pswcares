@@ -8,7 +8,10 @@ import EmptyState from "../components/ui/EmptyState";
 import LoadingState from "../components/LoadingState";
 import ErrorBanner from "../components/ErrorBanner";
 import { useToast } from "../context/ToastContext";
-import { getMyAppointmentsRequest, updateBookingStatusRequest } from "../services/appointmentApi";
+import {
+  getMyAppointmentsRequest,
+  updateBookingStatusRequest,
+} from "../services/appointmentApi";
 import { getMyPSWProfileRequest } from "../services/pswProfileApi";
 
 /* ------------------------------------------------------------------ */
@@ -31,13 +34,65 @@ const isToday = (dateStr) => {
   );
 };
 
-const isFuture = (dateStr) => new Date(dateStr) >= new Date(new Date().toDateString());
+const isFuture = (dateStr) =>
+  new Date(dateStr) >= new Date(new Date().toDateString());
 
 const fmtDate = (d) =>
-  new Intl.DateTimeFormat("en-CA", { month: "short", day: "numeric" }).format(new Date(d));
+  new Intl.DateTimeFormat("en-CA", { month: "short", day: "numeric" }).format(
+    new Date(d),
+  );
 
 const fmtCurrency = (v) =>
-  new Intl.NumberFormat("en-CA", { style: "currency", currency: "CAD" }).format(v);
+  new Intl.NumberFormat("en-CA", { style: "currency", currency: "CAD" }).format(
+    v,
+  );
+
+const DAY_LABELS = {
+  monday: "Monday",
+  tuesday: "Tuesday",
+  wednesday: "Wednesday",
+  thursday: "Thursday",
+  friday: "Friday",
+  saturday: "Saturday",
+  sunday: "Sunday",
+};
+
+const DAY_ORDER = [
+  "sunday",
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+];
+
+const getNextAvailabilitySlot = (availability = []) => {
+  if (!Array.isArray(availability) || availability.length === 0) {
+    return null;
+  }
+
+  const now = new Date();
+  const currentDayIndex = now.getDay();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  for (let offset = 0; offset < 7; offset += 1) {
+    const day = DAY_ORDER[(currentDayIndex + offset) % 7];
+    const slot = availability.find((item) => item.dayOfWeek === day);
+    if (!slot) continue;
+
+    const [startHour, startMinute] = String(slot.startTime || "")
+      .split(":")
+      .map(Number);
+    const startMinutes = startHour * 60 + startMinute;
+
+    if (offset > 0 || startMinutes >= currentMinutes) {
+      return slot;
+    }
+  }
+
+  return availability[0] || null;
+};
 
 const getServiceLabel = (notes) => {
   if (!notes) return "General care";
@@ -45,7 +100,12 @@ const getServiceLabel = (notes) => {
   return first || "General care";
 };
 
-const STATUS_BADGE = { pending: "warning", confirmed: "info", completed: "success", cancelled: "danger" };
+const STATUS_BADGE = {
+  pending: "warning",
+  confirmed: "info",
+  completed: "success",
+  cancelled: "danger",
+};
 
 /* ------------------------------------------------------------------ */
 /*  Stat Card                                                         */
@@ -57,8 +117,16 @@ const StatCard = ({ icon, value, label, gradient, index }) => (
     className="group rounded-xl border border-brand-100/60 bg-gradient-to-br from-white to-brand-50/30 p-5 transition-all duration-300 hover:shadow-card-hover hover:-translate-y-0.5"
   >
     <div className="flex items-center gap-4">
-      <div className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${gradient} shadow-lg shadow-brand-600/10`}>
-        <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+      <div
+        className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${gradient} shadow-lg shadow-brand-600/10`}
+      >
+        <svg
+          className="h-6 w-6 text-white"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth="1.5"
+        >
           <path strokeLinecap="round" strokeLinejoin="round" d={icon} />
         </svg>
       </div>
@@ -88,17 +156,43 @@ const AppointmentCard = ({ apt, onStatusChange, busy }) => {
         <Avatar name={clientName} size="md" />
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2">
-            <h3 className="text-sm font-bold text-slate-900 truncate">{clientName}</h3>
+            <h3 className="text-sm font-bold text-slate-900 truncate">
+              {clientName}
+            </h3>
             <Badge variant={STATUS_BADGE[apt.status]}>{apt.status}</Badge>
           </div>
           <p className="mt-0.5 text-xs text-slate-500">{service}</p>
           <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-500">
             <span className="flex items-center gap-1">
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" /></svg>
+              <svg
+                className="w-3.5 h-3.5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
+                />
+              </svg>
               {fmtDate(apt.appointmentDate)}
             </span>
             <span className="flex items-center gap-1">
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <svg
+                className="w-3.5 h-3.5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
               {apt.appointmentTime} · {apt.durationMinutes}min
             </span>
           </div>
@@ -182,13 +276,25 @@ const MessageItem = ({ apt }) => {
     >
       <Avatar name={peerName} size="sm" />
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-slate-900 truncate">{peerName}</p>
+        <p className="text-sm font-semibold text-slate-900 truncate">
+          {peerName}
+        </p>
         <p className="text-xs text-slate-400 truncate">
           {fmtDate(apt.appointmentDate)} · {apt.appointmentTime}
         </p>
       </div>
-      <svg className="w-4 h-4 text-slate-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+      <svg
+        className="w-4 h-4 text-slate-300 flex-shrink-0"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth="2"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M8.25 4.5l7.5 7.5-7.5 7.5"
+        />
       </svg>
     </Link>
   );
@@ -200,54 +306,124 @@ const MessageItem = ({ apt }) => {
 
 const buildNotifications = (appointments) => {
   const notifs = [];
-  const now = new Date();
-  const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  const formatStamp = (value) =>
+    new Intl.DateTimeFormat("en-CA", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    }).format(new Date(value));
 
   for (const apt of appointments) {
-    const created = new Date(apt.createdAt);
-    if (apt.status === "pending" && created > oneDayAgo) {
+    const created = apt.createdAt || apt.updatedAt || apt.appointmentDate;
+    const updated = apt.updatedAt || apt.appointmentDate;
+    const slot = `${fmtDate(apt.appointmentDate)} • ${apt.appointmentTime}`;
+
+    if (apt.status === "pending") {
       notifs.push({
         id: `new-${apt._id}`,
+        kind: "booking",
         icon: "M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z",
-        text: `New booking request from ${apt.clientId?.name || "client"}`,
-        time: created,
+        text: `New booking request from ${apt.clientId?.name || "client"} for ${slot}.`,
+        time: formatStamp(created),
+        ts: new Date(created).getTime(),
         variant: "warning",
       });
     }
+
+    if (apt.status === "confirmed") {
+      notifs.push({
+        id: `confirmed-${apt._id}`,
+        kind: "booking",
+        icon: "M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
+        text: `Appointment with ${apt.clientId?.name || "client"} confirmed (${slot}).`,
+        time: formatStamp(updated),
+        ts: new Date(updated).getTime(),
+        variant: "info",
+      });
+    }
+
     if (apt.status === "completed") {
       notifs.push({
         id: `done-${apt._id}`,
+        kind: "booking",
         icon: "M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
-        text: `Appointment with ${apt.clientId?.name || "client"} completed`,
-        time: new Date(apt.updatedAt),
+        text: `Appointment with ${apt.clientId?.name || "client"} completed (${slot}).`,
+        time: formatStamp(updated),
+        ts: new Date(updated).getTime(),
+        variant: "success",
+      });
+    }
+
+    if (apt.status === "cancelled") {
+      notifs.push({
+        id: `cancelled-${apt._id}`,
+        kind: "booking",
+        icon: "M6 18L18 6M6 6l12 12",
+        text: `Appointment with ${apt.clientId?.name || "client"} was cancelled (${slot}).`,
+        time: formatStamp(updated),
+        ts: new Date(updated).getTime(),
+        variant: "danger",
+      });
+    }
+
+    if (apt.rescheduledAt) {
+      notifs.push({
+        id: `rescheduled-${apt._id}`,
+        kind: "reschedule",
+        icon: "M16.5 3.75V8.25m0 0H12m4.5 0L12.75 12m0 0V7.5m0 4.5h4.5",
+        text: `${apt.clientId?.name || "Client"} requested a reschedule for ${slot}.`,
+        time: formatStamp(apt.rescheduledAt),
+        ts: new Date(apt.rescheduledAt).getTime(),
+        variant: "info",
+      });
+    }
+
+    if (apt.paymentId?.status === "succeeded") {
+      const paidTime = apt.paymentId?.paidAt || updated;
+      notifs.push({
+        id: `payment-${apt._id}`,
+        kind: "payment",
+        icon: "M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75",
+        text: `Payment received for ${apt.clientId?.name || "client"}'s appointment (${slot}).`,
+        time: formatStamp(paidTime),
+        ts: new Date(paidTime).getTime(),
         variant: "success",
       });
     }
   }
 
-  return notifs
-    .sort((a, b) => b.time - a.time)
-    .slice(0, 5);
+  return notifs.sort((a, b) => b.ts - a.ts).slice(0, 6);
 };
 
 const NOTIF_COLORS = {
   warning: "bg-amber-50 text-amber-600",
   success: "bg-emerald-50 text-emerald-600",
   info: "bg-brand-50 text-brand-600",
+  danger: "bg-rose-50 text-rose-600",
 };
 
 const NotificationItem = ({ notif }) => (
   <div className="flex items-start gap-3 rounded-xl p-3 transition hover:bg-brand-50/40">
-    <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${NOTIF_COLORS[notif.variant] || NOTIF_COLORS.info}`}>
-      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+    <div
+      className={`flex h-8 w-8 items-center justify-center rounded-lg ${NOTIF_COLORS[notif.variant] || NOTIF_COLORS.info}`}
+    >
+      <svg
+        className="w-4 h-4"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth="2"
+      >
         <path strokeLinecap="round" strokeLinejoin="round" d={notif.icon} />
       </svg>
     </div>
     <div className="flex-1 min-w-0">
+      {notif.kind ? (
+        <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+          {notif.kind}
+        </p>
+      ) : null}
       <p className="text-sm text-slate-700">{notif.text}</p>
-      <p className="text-xs text-slate-400 mt-0.5">
-        {new Intl.DateTimeFormat("en-CA", { dateStyle: "medium", timeStyle: "short" }).format(notif.time)}
-      </p>
+      <p className="text-xs text-slate-400 mt-0.5">{notif.time}</p>
     </div>
   </div>
 );
@@ -291,8 +467,10 @@ const PSWDashboardPage = () => {
         getMyAppointmentsRequest(),
         getMyPSWProfileRequest(),
       ]);
-      if (aptData.status === "fulfilled") setAppointments(aptData.value.items || []);
-      if (profileData.status === "fulfilled") setProfile(profileData.value.profile || null);
+      if (aptData.status === "fulfilled")
+        setAppointments(aptData.value.items || []);
+      if (profileData.status === "fulfilled")
+        setProfile(profileData.value.profile || null);
     } catch (e) {
       setError(e.message || "Failed to load dashboard data.");
     } finally {
@@ -300,7 +478,9 @@ const PSWDashboardPage = () => {
     }
   }, []);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   /* Status change handler */
   const handleStatusChange = async (appointmentId, status) => {
@@ -312,16 +492,27 @@ const PSWDashboardPage = () => {
         prev.map((a) => (a._id === appointmentId ? { ...a, status } : a)),
       );
     } catch (e) {
-      toast.error(e.response?.data?.message || `Failed to update to ${status}.`);
+      toast.error(
+        e.response?.data?.message || `Failed to update to ${status}.`,
+      );
     } finally {
       setBusyId(null);
     }
   };
 
   /* Derived data */
-  const pending = useMemo(() => appointments.filter((a) => a.status === "pending"), [appointments]);
-  const confirmed = useMemo(() => appointments.filter((a) => a.status === "confirmed"), [appointments]);
-  const completed = useMemo(() => appointments.filter((a) => a.status === "completed"), [appointments]);
+  const pending = useMemo(
+    () => appointments.filter((a) => a.status === "pending"),
+    [appointments],
+  );
+  const confirmed = useMemo(
+    () => appointments.filter((a) => a.status === "confirmed"),
+    [appointments],
+  );
+  const completed = useMemo(
+    () => appointments.filter((a) => a.status === "completed"),
+    [appointments],
+  );
   const upcoming = useMemo(() => {
     return [...confirmed, ...pending]
       .filter((a) => isFuture(a.appointmentDate))
@@ -329,24 +520,45 @@ const PSWDashboardPage = () => {
       .slice(0, 5);
   }, [confirmed, pending]);
 
-  const todayCount = useMemo(() =>
-    appointments.filter((a) => isToday(a.appointmentDate) && ["confirmed", "pending"].includes(a.status)).length,
+  const todayCount = useMemo(
+    () =>
+      appointments.filter(
+        (a) =>
+          isToday(a.appointmentDate) &&
+          ["confirmed", "pending"].includes(a.status),
+      ).length,
     [appointments],
   );
 
   const weeklyEarnings = useMemo(() => {
     const now = new Date();
     const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const rate = profile?.hourlyRate || 0;
     return completed
-      .filter((a) => new Date(a.appointmentDate) >= weekAgo)
-      .reduce((sum, a) => sum + (rate * (a.durationMinutes || 60)) / 60, 0);
-  }, [completed, profile]);
+      .filter((a) => {
+        const payment = a.paymentId;
+        if (!payment || payment.status !== "succeeded") return false;
+        const paidDate = payment.paidAt
+          ? new Date(payment.paidAt)
+          : new Date(a.appointmentDate);
+        return paidDate >= weekAgo;
+      })
+      .reduce((sum, a) => sum + Number(a.paymentId?.amount || 0) / 100, 0);
+  }, [completed]);
+
+  const nextAvailabilitySlot = useMemo(
+    () => getNextAvailabilitySlot(profile?.availability || []),
+    [profile],
+  );
 
   const messages = useMemo(() => confirmed.slice(0, 3), [confirmed]);
-  const notifications = useMemo(() => buildNotifications(appointments), [appointments]);
+  const notifications = useMemo(
+    () => buildNotifications(appointments),
+    [appointments],
+  );
 
-  const avgRating = profile?.averageRating ? Number(profile.averageRating).toFixed(1) : "—";
+  const avgRating = profile?.averageRating
+    ? Number(profile.averageRating).toFixed(1)
+    : "—";
 
   /* Stats config */
   const stats = [
@@ -418,13 +630,22 @@ const PSWDashboardPage = () => {
             <div className="space-y-6">
               {/* ── 3. Upcoming Appointments ──────────────────────── */}
               <motion.section {...fadeUp()}>
-                <SectionHeader title="Upcoming Appointments" badge={upcoming.length}>
-                  <Link className="text-xs font-semibold text-brand-600 hover:text-brand-700" to="/psw/chat">
+                <SectionHeader
+                  title="Upcoming Appointments"
+                  badge={upcoming.length}
+                >
+                  <Link
+                    className="text-xs font-semibold text-brand-600 hover:text-brand-700"
+                    to="/psw/chat"
+                  >
                     View all →
                   </Link>
                 </SectionHeader>
                 {upcoming.length === 0 ? (
-                  <EmptyState title="All clear" description="No upcoming appointments right now." />
+                  <EmptyState
+                    title="All clear"
+                    description="No upcoming appointments right now."
+                  />
                 ) : (
                   <div className="space-y-3">
                     {upcoming.map((apt) => (
@@ -443,7 +664,10 @@ const PSWDashboardPage = () => {
               <motion.section {...fadeUp()}>
                 <SectionHeader title="Notifications" />
                 {notifications.length === 0 ? (
-                  <EmptyState title="No notifications" description="You're all caught up." />
+                  <EmptyState
+                    title="No notifications"
+                    description="You're all caught up."
+                  />
                 ) : (
                   <div className="rounded-xl border border-brand-100/60 bg-white divide-y divide-brand-100/40">
                     {notifications.map((n) => (
@@ -459,18 +683,30 @@ const PSWDashboardPage = () => {
               {/* ── 4. Availability Snapshot ─────────────────────── */}
               <motion.section {...fadeUp()} className="app-card">
                 <SectionHeader title="Availability" />
-                {upcoming.length > 0 ? (
+                {nextAvailabilitySlot ? (
                   <div className="rounded-xl border border-brand-100/60 bg-brand-50/20 p-4 text-center">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Next scheduled</p>
-                    <p className="mt-1 text-lg font-bold text-slate-900">
-                      {fmtDate(upcoming[0].appointmentDate)}
+                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                      Next available
                     </p>
-                    <p className="text-sm text-slate-500">{upcoming[0].appointmentTime}</p>
+                    <p className="mt-1 text-lg font-bold text-slate-900">
+                      {DAY_LABELS[nextAvailabilitySlot.dayOfWeek] ||
+                        "Available"}
+                    </p>
+                    <p className="text-sm text-slate-500">
+                      {nextAvailabilitySlot.startTime} -{" "}
+                      {nextAvailabilitySlot.endTime}
+                    </p>
                   </div>
                 ) : (
-                  <p className="text-sm text-slate-500 text-center py-3">No upcoming slots</p>
+                  <p className="text-sm text-slate-500 text-center py-3">
+                    No weekly availability set
+                  </p>
                 )}
-                <Link className="btn-outline btn-sm w-full mt-4 text-center" to="/psw/profile">
+                <Link
+                  className="btn-outline btn-sm w-full mt-4 text-center"
+                  to="/psw/profile"
+                  state={{ activeTab: "availability" }}
+                >
                   Update Availability
                 </Link>
               </motion.section>
@@ -478,12 +714,17 @@ const PSWDashboardPage = () => {
               {/* ── 5. Messages Preview ──────────────────────────── */}
               <motion.section {...fadeUp()} className="app-card">
                 <SectionHeader title="Messages">
-                  <Link className="text-xs font-semibold text-brand-600 hover:text-brand-700" to="/psw/chat">
+                  <Link
+                    className="text-xs font-semibold text-brand-600 hover:text-brand-700"
+                    to="/psw/chat"
+                  >
                     Open chat →
                   </Link>
                 </SectionHeader>
                 {messages.length === 0 ? (
-                  <p className="text-sm text-slate-500 text-center py-3">No active conversations</p>
+                  <p className="text-sm text-slate-500 text-center py-3">
+                    No active conversations
+                  </p>
                 ) : (
                   <div className="divide-y divide-brand-100/40">
                     {messages.map((apt) => (
@@ -498,17 +739,39 @@ const PSWDashboardPage = () => {
                 <SectionHeader title="Quick Actions" />
                 <div className="space-y-2">
                   {[
-                    { label: "Edit Profile", to: "/psw/profile", icon: "M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" },
-                    { label: "Upload Certificates", to: "/psw/profile", icon: "M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" },
-                    { label: "Open Messages", to: "/psw/chat", icon: "M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" },
+                    {
+                      label: "Edit Profile",
+                      to: "/psw/profile",
+                      icon: "M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z",
+                    },
+                    {
+                      label: "Upload Certificates",
+                      to: "/psw/profile",
+                      icon: "M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5",
+                    },
+                    {
+                      label: "Open Messages",
+                      to: "/psw/chat",
+                      icon: "M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z",
+                    },
                   ].map((action) => (
                     <Link
                       key={action.label}
                       to={action.to}
                       className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 transition-all duration-200 hover:bg-brand-50 hover:text-brand-700"
                     >
-                      <svg className="w-5 h-5 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d={action.icon} />
+                      <svg
+                        className="w-5 h-5 text-brand-500"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d={action.icon}
+                        />
                       </svg>
                       {action.label}
                     </Link>

@@ -1,6 +1,3 @@
-import Navbar from "../components/landing/Navbar";
-import Footer from "../components/landing/Footer";
-
 const sections = [
   {
     title: "Our Commitment",
@@ -44,44 +41,63 @@ const sections = [
 
 const AccessibilityPage = () => {
   return (
-    <div className="min-h-screen bg-white">
-      <Navbar />
-      <main className="pt-24 pb-20">
-        <div className="container-max section-padding !pt-8">
-          <div className="max-w-3xl mx-auto">
-            <p className="text-sm font-semibold text-brand-600 uppercase tracking-widest mb-3">Commitment</p>
-            <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 leading-tight mb-4">
-              Accessibility
-            </h1>
-            <p className="text-sm text-slate-500 mb-10">Last updated: March 25, 2026</p>
+    <main className="py-16">
+      <div className="container-max section-padding !py-8">
+        <div className="max-w-3xl mx-auto">
+          <p className="text-sm font-semibold text-brand-600 uppercase tracking-widest mb-3">
+            Commitment
+          </p>
+          <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 leading-tight mb-4">
+            Accessibility
+          </h1>
+          <p className="text-sm text-slate-500 mb-10">
+            Last updated: March 25, 2026
+          </p>
 
-            <div className="space-y-10">
-              {sections.map((section) => (
-                <div key={section.title} className="rounded-2xl border border-slate-100 bg-white p-7 shadow-card">
-                  <h2 className="text-xl font-bold text-slate-900 mb-4">{section.title}</h2>
-                  {section.content && (
-                    <p className="text-slate-600 leading-relaxed">{section.content}</p>
-                  )}
-                  {section.items && (
-                    <ul className="space-y-3">
-                      {section.items.map((item, i) => (
-                        <li key={i} className="flex items-start gap-3">
-                          <svg className="w-5 h-5 mt-0.5 text-brand-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                          </svg>
-                          <span className="text-slate-600 leading-relaxed">{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              ))}
-            </div>
+          <div className="space-y-10">
+            {sections.map((section) => (
+              <div
+                key={section.title}
+                className="rounded-2xl border border-slate-100 bg-white p-7 shadow-card"
+              >
+                <h2 className="text-xl font-bold text-slate-900 mb-4">
+                  {section.title}
+                </h2>
+                {section.content && (
+                  <p className="text-slate-600 leading-relaxed">
+                    {section.content}
+                  </p>
+                )}
+                {section.items && (
+                  <ul className="space-y-3">
+                    {section.items.map((item, i) => (
+                      <li key={i} className="flex items-start gap-3">
+                        <svg
+                          className="w-5 h-5 mt-0.5 text-brand-500 flex-shrink-0"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M4.5 12.75l6 6 9-13.5"
+                          />
+                        </svg>
+                        <span className="text-slate-600 leading-relaxed">
+                          {item}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ))}
           </div>
         </div>
-      </main>
-      <Footer />
-    </div>
+      </div>
+    </main>
   );
 };
 

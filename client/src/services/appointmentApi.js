@@ -11,6 +11,16 @@ export const getMyAppointmentsRequest = async () => {
 };
 
 export const updateBookingStatusRequest = async (appointmentId, status) => {
-  const response = await api.patch(`/appointments/${appointmentId}/status`, { status });
+  const response = await api.patch(`/appointments/${appointmentId}/status`, {
+    status,
+  });
+  return response.data;
+};
+
+export const rescheduleBookingRequest = async (appointmentId, payload) => {
+  const response = await api.patch(
+    `/appointments/${appointmentId}/reschedule`,
+    payload,
+  );
   return response.data;
 };
