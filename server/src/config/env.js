@@ -2,6 +2,14 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+const parseOrigins = (value) => {
+  return String(value || "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .map((item) => item.replace(/\/$/, ""));
+};
+
 const required = [
   "MONGODB_URI",
   "JWT_SECRET",
@@ -28,6 +36,7 @@ export const env = {
   jwtSecret: process.env.JWT_SECRET,
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "7d",
   clientOrigin: process.env.CLIENT_ORIGIN,
+  allowedOrigins: parseOrigins(process.env.CLIENT_ORIGIN),
   awsRegion: process.env.AWS_REGION,
   awsAccessKeyId: process.env.AWS_ACCESS_KEY_ID,
   awsSecretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,

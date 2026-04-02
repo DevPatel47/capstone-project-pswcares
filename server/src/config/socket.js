@@ -44,10 +44,26 @@ const extractToken = (socket) => {
   return String(headerToken).replace(/^Bearer\s+/i, "");
 };
 
+const isAllowedOrigin = (origin) => {
+  if (!origin) {
+    return true;
+  }
+
+  const normalizedOrigin = String(origin).replace(/\/$/, "");
+  return env.allowedOrigins.includes(normalizedOrigin);
+};
+
 export const initializeSocket = (httpServer) => {
   const io = new Server(httpServer, {
     cors: {
-      origin: env.clientOrigin,
+      origin: (origin, callback) => {
+        if (isAllowedOrigin(origin)) {
+          callback(null, true);
+          return;
+        }
+
+        callback(new Error("Not allowed by CORS"));
+      },
       credentials: true,
     },
   });

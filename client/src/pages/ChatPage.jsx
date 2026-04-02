@@ -69,18 +69,18 @@ const ChatPage = () => {
       setError("");
       try {
         const data = await getMyAppointmentsRequest();
-        const confirmed = (data.items || []).filter(
-          (item) => item.status === "confirmed",
+        const chatEligible = (data.items || []).filter((item) =>
+          ["confirmed", "completed"].includes(item.status),
         );
-        setAppointments(confirmed);
+        setAppointments(chatEligible);
 
-        const selectedIsConfirmed = confirmed.some(
+        const selectedIsEligible = chatEligible.some(
           (item) => String(item._id) === String(selectedAppointmentId),
         );
 
-        if (selectedAppointmentId && !selectedIsConfirmed) {
-          if (confirmed.length > 0) {
-            const firstId = String(confirmed[0]._id);
+        if (selectedAppointmentId && !selectedIsEligible) {
+          if (chatEligible.length > 0) {
+            const firstId = String(chatEligible[0]._id);
             setSelectedAppointmentId(firstId);
             setSearchParams({ appointmentId: firstId });
           } else {
@@ -90,15 +90,15 @@ const ChatPage = () => {
           return;
         }
 
-        if (!selectedAppointmentId && confirmed.length > 0) {
-          const firstId = String(confirmed[0]._id);
+        if (!selectedAppointmentId && chatEligible.length > 0) {
+          const firstId = String(chatEligible[0]._id);
           setSelectedAppointmentId(firstId);
           setSearchParams({ appointmentId: firstId });
         }
       } catch (requestError) {
         setError(
           requestError.response?.data?.message ||
-            "Unable to load confirmed appointments.",
+            "Unable to load chat appointments.",
         );
       } finally {
         setIsLoadingAppointments(false);
@@ -144,6 +144,8 @@ const ChatPage = () => {
       ) || null
     );
   }, [appointments, selectedAppointmentId]);
+
+  const canSendForSelected = selectedAppointment?.status === "confirmed";
 
   const handleAppointmentSelect = (id) => {
     setSelectedAppointmentId(id);
@@ -199,7 +201,8 @@ const ChatPage = () => {
               <div>
                 <h1 className="text-lg font-bold text-slate-900">Messages</h1>
                 <p className="text-xs text-slate-500">
-                  Real-time chat for confirmed appointments
+                  Real-time chat for confirmed appointments and history for
+                  completed care
                 </p>
               </div>
             </div>
@@ -233,7 +236,7 @@ const ChatPage = () => {
 
             {!isLoadingAppointments && appointments.length === 0 ? (
               <p className="px-2 text-sm text-slate-500">
-                No confirmed appointments found.
+                No chat-eligible appointments found.
               </p>
             ) : null}
 
@@ -347,7 +350,7 @@ const ChatPage = () => {
               <div className="flex items-center gap-2">
                 <input
                   className="app-input !rounded-full"
-                  disabled={!selectedAppointmentId}
+                  disabled={!selectedAppointmentId || !canSendForSelected}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
@@ -357,14 +360,20 @@ const ChatPage = () => {
                   }}
                   placeholder={
                     selectedAppointmentId
-                      ? "Type a message..."
+                      ? canSendForSelected
+                        ? "Type a message..."
+                        : "Completed appointments are read-only"
                       : "Select a conversation first"
                   }
                   value={input}
                 />
                 <button
                   className="btn-primary !rounded-full !px-5 !py-3"
-                  disabled={!selectedAppointmentId || !input.trim()}
+                  disabled={
+                    !selectedAppointmentId ||
+                    !canSendForSelected ||
+                    !input.trim()
+                  }
                   onClick={handleSend}
                   type="button"
                 >

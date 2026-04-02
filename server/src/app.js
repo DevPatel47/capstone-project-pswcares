@@ -9,10 +9,26 @@ import apiRoutes from "./routes/index.js";
 
 const app = express();
 
+const isAllowedOrigin = (origin) => {
+  if (!origin) {
+    return true;
+  }
+
+  const normalizedOrigin = String(origin).replace(/\/$/, "");
+  return env.allowedOrigins.includes(normalizedOrigin);
+};
+
 app.use(helmet());
 app.use(
   cors({
-    origin: env.clientOrigin,
+    origin: (origin, callback) => {
+      if (isAllowedOrigin(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
   }),
 );
