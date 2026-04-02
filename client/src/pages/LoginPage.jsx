@@ -24,7 +24,8 @@ const LoginPage = () => {
   const validate = () => {
     const v = {};
     if (!isValidEmail(form.email)) v.email = "Please enter a valid email.";
-    if (!String(form.password || "").trim()) v.password = "Password is required.";
+    if (!String(form.password || "").trim())
+      v.password = "Password is required.";
     return v;
   };
 
@@ -43,12 +44,21 @@ const LoginPage = () => {
 
     setIsSubmitting(true);
     try {
-      const res = await loginRequest({ email: form.email.trim(), password: form.password });
-      setAuthSession({ token: res.token, user: res.user });
+      const res = await loginRequest({
+        email: form.email.trim(),
+        password: form.password,
+      });
+      setAuthSession({
+        token: res.token || res.accessToken || res.jwt,
+        user: res.user,
+      });
       toast.success("Signed in successfully.");
       navigate(getDashboardPathByRole(res.user.role), { replace: true });
     } catch (error) {
-      const msg = error.response?.data?.message || error.message || "Login failed. Please try again.";
+      const msg =
+        error.response?.data?.message ||
+        error.message ||
+        "Login failed. Please try again.";
       setApiError(msg);
       toast.error(msg);
     } finally {
@@ -63,11 +73,22 @@ const LoginPage = () => {
           {/* Logo */}
           <Link to="/" className="inline-flex items-center gap-2.5 mb-8">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-400 to-accent-400 flex items-center justify-center">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="white"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
               </svg>
             </div>
-            <span className="text-lg font-bold text-slate-900 tracking-tight">PSWCares</span>
+            <span className="text-lg font-bold text-slate-900 tracking-tight">
+              PSWCares
+            </span>
           </Link>
 
           <h1 className="text-2xl font-bold text-slate-900">Welcome back</h1>
@@ -99,14 +120,19 @@ const LoginPage = () => {
             />
 
             <div className="text-right">
-              <Link className="text-sm font-medium text-brand-600 hover:text-brand-700" to="/forgot-password">
+              <Link
+                className="text-sm font-medium text-brand-600 hover:text-brand-700"
+                to="/forgot-password"
+              >
                 Forgot password?
               </Link>
             </div>
 
             <ErrorBanner message={apiError} compact />
 
-            {isSubmitting ? <LoadingState compact label="Verifying credentials..." /> : null}
+            {isSubmitting ? (
+              <LoadingState compact label="Verifying credentials..." />
+            ) : null}
 
             <Button type="submit" loading={isSubmitting} className="w-full">
               Sign in
@@ -115,7 +141,10 @@ const LoginPage = () => {
 
           <p className="mt-6 text-center text-sm text-slate-500">
             New to PSWCares?{" "}
-            <Link className="font-semibold text-brand-600 hover:text-brand-700" to="/register">
+            <Link
+              className="font-semibold text-brand-600 hover:text-brand-700"
+              to="/register"
+            >
               Create account
             </Link>
           </p>

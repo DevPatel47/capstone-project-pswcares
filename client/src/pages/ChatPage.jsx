@@ -5,7 +5,7 @@ import Badge from "../components/ui/Badge";
 import PageTransition from "../components/ui/PageTransition";
 import EmptyState from "../components/ui/EmptyState";
 import { getMyAppointmentsRequest } from "../services/appointmentApi";
-import { getAuthSession } from "../services/authStorage";
+import { clearAuthSession, getAuthSession } from "../services/authStorage";
 import { getMessagesByAppointmentRequest } from "../services/chatApi";
 import { createChatSocket } from "../services/chatSocket";
 
@@ -40,11 +40,26 @@ const ChatPage = () => {
   const listRef = useRef(null);
 
   useEffect(() => {
+    if (!session?.token) {
+      setSocketConnected(false);
+      return;
+    }
+
     const socket = createChatSocket();
     socketRef.current = socket;
 
     const onConnect = () => setSocketConnected(true);
     const onDisconnect = () => setSocketConnected(false);
+    const onConnectError = (socketError) => {
+      const message = String(socketError?.message || "");
+      if (!message.toLowerCase().includes("unauthorized")) {
+        return;
+      }
+
+      clearAuthSession();
+      socket.disconnect();
+      window.location.replace("/login");
+    };
     const onReceiveMessage = (payload) => {
       if (!payload?.appointmentId) return;
       if (payload.appointmentId !== selectedAppointmentId) return;
@@ -53,15 +68,17 @@ const ChatPage = () => {
 
     socket.on("connect", onConnect);
     socket.on("disconnect", onDisconnect);
+    socket.on("connect_error", onConnectError);
     socket.on("receive_message", onReceiveMessage);
 
     return () => {
       socket.off("connect", onConnect);
       socket.off("disconnect", onDisconnect);
+      socket.off("connect_error", onConnectError);
       socket.off("receive_message", onReceiveMessage);
       socket.disconnect();
     };
-  }, [selectedAppointmentId]);
+  }, [selectedAppointmentId, session?.token]);
 
   useEffect(() => {
     const loadAppointments = async () => {

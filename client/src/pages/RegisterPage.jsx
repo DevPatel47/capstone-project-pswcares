@@ -39,11 +39,15 @@ const RegisterPage = () => {
 
   const validate = () => {
     const v = {};
-    if (!hasMinLength(form.name, 2)) v.name = "Name must be at least 2 characters.";
+    if (!hasMinLength(form.name, 2))
+      v.name = "Name must be at least 2 characters.";
     if (!isValidEmail(form.email)) v.email = "Please enter a valid email.";
-    if (!hasMinLength(form.password, 8)) v.password = "Password must be at least 8 characters.";
-    if (form.confirmPassword !== form.password) v.confirmPassword = "Passwords do not match.";
-    if (!allowedRoles.includes(form.role)) v.role = "Please select a valid role.";
+    if (!hasMinLength(form.password, 8))
+      v.password = "Password must be at least 8 characters.";
+    if (form.confirmPassword !== form.password)
+      v.confirmPassword = "Passwords do not match.";
+    if (!allowedRoles.includes(form.role))
+      v.role = "Please select a valid role.";
     return v;
   };
 
@@ -68,11 +72,17 @@ const RegisterPage = () => {
         password: form.password,
         role: form.role,
       });
-      setAuthSession({ token: res.token, user: res.user });
+      setAuthSession({
+        token: res.token || res.accessToken || res.jwt,
+        user: res.user,
+      });
       toast.success("Account created successfully.");
       navigate(getDashboardPathByRole(res.user.role), { replace: true });
     } catch (error) {
-      const msg = error.response?.data?.message || error.message || "Registration failed. Please try again.";
+      const msg =
+        error.response?.data?.message ||
+        error.message ||
+        "Registration failed. Please try again.";
       setApiError(msg);
       toast.error(msg);
     } finally {
@@ -86,14 +96,27 @@ const RegisterPage = () => {
         <section className="app-card !p-8 md:!p-10">
           <Link to="/" className="inline-flex items-center gap-2.5 mb-8">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-400 to-accent-400 flex items-center justify-center">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="white"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
               </svg>
             </div>
-            <span className="text-lg font-bold text-slate-900 tracking-tight">PSWCares</span>
+            <span className="text-lg font-bold text-slate-900 tracking-tight">
+              PSWCares
+            </span>
           </Link>
 
-          <h1 className="text-2xl font-bold text-slate-900">Create your account</h1>
+          <h1 className="text-2xl font-bold text-slate-900">
+            Create your account
+          </h1>
           <p className="mt-1.5 text-sm text-slate-500">
             Register as a Client or PSW to get started.
           </p>
@@ -144,26 +167,38 @@ const RegisterPage = () => {
             </div>
 
             <div>
-              <label className="app-label" htmlFor="role">I am a</label>
+              <label className="app-label" htmlFor="role">
+                I am a
+              </label>
               <div className="grid grid-cols-2 gap-3">
                 {[
-                  { value: "client", label: "Client", desc: "Looking for care" },
+                  {
+                    value: "client",
+                    label: "Client",
+                    desc: "Looking for care",
+                  },
                   { value: "psw", label: "PSW", desc: "Providing care" },
                 ].map((option) => (
                   <button
                     key={option.value}
                     type="button"
-                    onClick={() => setForm((p) => ({ ...p, role: option.value }))}
+                    onClick={() =>
+                      setForm((p) => ({ ...p, role: option.value }))
+                    }
                     className={`rounded-xl border-2 p-4 text-left transition-all duration-200 ${
                       form.role === option.value
                         ? "border-brand-400 bg-brand-50 ring-2 ring-brand-100"
                         : "border-slate-200 bg-white hover:border-slate-300"
                     }`}
                   >
-                    <p className={`text-sm font-semibold ${form.role === option.value ? "text-brand-700" : "text-slate-900"}`}>
+                    <p
+                      className={`text-sm font-semibold ${form.role === option.value ? "text-brand-700" : "text-slate-900"}`}
+                    >
                       {option.label}
                     </p>
-                    <p className="mt-0.5 text-xs text-slate-500">{option.desc}</p>
+                    <p className="mt-0.5 text-xs text-slate-500">
+                      {option.desc}
+                    </p>
                   </button>
                 ))}
               </div>
@@ -171,7 +206,9 @@ const RegisterPage = () => {
             </div>
 
             <ErrorBanner message={apiError} compact />
-            {isSubmitting ? <LoadingState compact label="Creating account..." /> : null}
+            {isSubmitting ? (
+              <LoadingState compact label="Creating account..." />
+            ) : null}
 
             <Button type="submit" loading={isSubmitting} className="w-full">
               Create account
@@ -180,7 +217,10 @@ const RegisterPage = () => {
 
           <p className="mt-6 text-center text-sm text-slate-500">
             Already registered?{" "}
-            <Link className="font-semibold text-brand-600 hover:text-brand-700" to="/login">
+            <Link
+              className="font-semibold text-brand-600 hover:text-brand-700"
+              to="/login"
+            >
               Sign in
             </Link>
           </p>

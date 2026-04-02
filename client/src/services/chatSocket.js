@@ -1,5 +1,5 @@
 import { io } from "socket.io-client";
-import { getAuthSession } from "./authStorage";
+import { getAuthToken } from "./authStorage";
 
 const getSocketBaseUrl = () => {
   if (import.meta.env.VITE_SOCKET_URL) {
@@ -11,16 +11,16 @@ const getSocketBaseUrl = () => {
 };
 
 export const createChatSocket = () => {
-  const session = getAuthSession();
+  const token = getAuthToken();
 
   const socket = io(getSocketBaseUrl(), {
     transports: ["websocket", "polling"],
     reconnection: true,
-    reconnectionAttempts: 8,
+    reconnectionAttempts: 3,
     reconnectionDelay: 800,
     timeout: 15000,
     auth: {
-      token: session?.token ? `Bearer ${session.token}` : "",
+      token: token ? `Bearer ${token}` : "",
     },
   });
 
