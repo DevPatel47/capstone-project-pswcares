@@ -85,10 +85,10 @@ export const getChatMessages = async ({ appointmentId, actor }) => {
     );
   }
 
-  if (appointment.status !== "confirmed") {
+  if (!["confirmed", "completed"].includes(appointment.status)) {
     throw createHttpError(
       403,
-      "Chat is only available for confirmed appointments.",
+      "Chat history is only available for confirmed or completed appointments.",
     );
   }
 

@@ -14,7 +14,11 @@ export const createChatSocket = () => {
   const session = getAuthSession();
 
   const socket = io(getSocketBaseUrl(), {
-    transports: ["websocket"],
+    transports: ["websocket", "polling"],
+    reconnection: true,
+    reconnectionAttempts: 8,
+    reconnectionDelay: 800,
+    timeout: 15000,
     auth: {
       token: session?.token ? `Bearer ${session.token}` : "",
     },

@@ -31,6 +31,7 @@ const BookingCard = ({
 }) => {
   const pswName = booking.pswId?.name || "PSW";
   const canManage = ["pending", "confirmed"].includes(booking.status);
+  const canMessage = booking.status === "confirmed";
   const allowCancel = typeof canCancel === "boolean" ? canCancel : canManage;
   const serviceType = getServiceType(booking.notes);
 
@@ -57,12 +58,23 @@ const BookingCard = ({
       <div
         className={`mt-4 grid grid-cols-1 gap-2 ${canPay ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}
       >
-        <Link
-          className="btn-outline btn-sm text-center"
-          to={`/client/chat?appointmentId=${encodeURIComponent(booking._id)}`}
-        >
-          Send message
-        </Link>
+        {canMessage ? (
+          <Link
+            className="btn-outline btn-sm text-center"
+            to={`/client/chat?appointmentId=${encodeURIComponent(booking._id)}`}
+          >
+            Send message
+          </Link>
+        ) : (
+          <button
+            className="btn-outline btn-sm text-center"
+            disabled
+            type="button"
+            title="Messaging unlocks after the booking is confirmed."
+          >
+            Send message
+          </button>
+        )}
         {canPay ? (
           <button
             className="btn-primary btn-sm"

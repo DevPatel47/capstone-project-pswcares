@@ -13,7 +13,10 @@ const formatDateTime = (value) => {
   if (!value) return "";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
-  return new Intl.DateTimeFormat("en-CA", { dateStyle: "medium", timeStyle: "short" }).format(date);
+  return new Intl.DateTimeFormat("en-CA", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
 };
 
 const ChatPage = () => {
@@ -66,8 +69,26 @@ const ChatPage = () => {
       setError("");
       try {
         const data = await getMyAppointmentsRequest();
-        const confirmed = (data.items || []).filter((item) => item.status === "confirmed");
+        const confirmed = (data.items || []).filter(
+          (item) => item.status === "confirmed",
+        );
         setAppointments(confirmed);
+
+        const selectedIsConfirmed = confirmed.some(
+          (item) => String(item._id) === String(selectedAppointmentId),
+        );
+
+        if (selectedAppointmentId && !selectedIsConfirmed) {
+          if (confirmed.length > 0) {
+            const firstId = String(confirmed[0]._id);
+            setSelectedAppointmentId(firstId);
+            setSearchParams({ appointmentId: firstId });
+          } else {
+            setSelectedAppointmentId("");
+            setSearchParams({});
+          }
+          return;
+        }
 
         if (!selectedAppointmentId && confirmed.length > 0) {
           const firstId = String(confirmed[0]._id);
@@ -75,7 +96,10 @@ const ChatPage = () => {
           setSearchParams({ appointmentId: firstId });
         }
       } catch (requestError) {
-        setError(requestError.response?.data?.message || "Unable to load confirmed appointments.");
+        setError(
+          requestError.response?.data?.message ||
+            "Unable to load confirmed appointments.",
+        );
       } finally {
         setIsLoadingAppointments(false);
       }
@@ -92,10 +116,14 @@ const ChatPage = () => {
       setIsLoadingMessages(true);
       setError("");
       try {
-        const data = await getMessagesByAppointmentRequest(selectedAppointmentId);
+        const data = await getMessagesByAppointmentRequest(
+          selectedAppointmentId,
+        );
         setMessages(data.items || []);
       } catch (requestError) {
-        setError(requestError.response?.data?.message || "Unable to load messages.");
+        setError(
+          requestError.response?.data?.message || "Unable to load messages.",
+        );
         setMessages([]);
       } finally {
         setIsLoadingMessages(false);
@@ -110,7 +138,11 @@ const ChatPage = () => {
   }, [messages]);
 
   const selectedAppointment = useMemo(() => {
-    return appointments.find((item) => String(item._id) === String(selectedAppointmentId)) || null;
+    return (
+      appointments.find(
+        (item) => String(item._id) === String(selectedAppointmentId),
+      ) || null
+    );
   }, [appointments, selectedAppointmentId]);
 
   const handleAppointmentSelect = (id) => {
@@ -150,13 +182,25 @@ const ChatPage = () => {
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-400 to-accent-400 flex items-center justify-center">
-                <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
+                <svg
+                  className="w-5 h-5 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"
+                  />
                 </svg>
               </div>
               <div>
                 <h1 className="text-lg font-bold text-slate-900">Messages</h1>
-                <p className="text-xs text-slate-500">Real-time chat for confirmed appointments</p>
+                <p className="text-xs text-slate-500">
+                  Real-time chat for confirmed appointments
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -165,7 +209,9 @@ const ChatPage = () => {
               </Badge>
               <Link
                 className="btn-outline btn-sm"
-                to={currentRole === "psw" ? "/psw/dashboard" : "/client/dashboard"}
+                to={
+                  currentRole === "psw" ? "/psw/dashboard" : "/client/dashboard"
+                }
               >
                 ← Dashboard
               </Link>
@@ -177,18 +223,23 @@ const ChatPage = () => {
         <section className="grid min-h-[68vh] grid-cols-1 gap-4 lg:grid-cols-[300px_minmax(0,1fr)]">
           {/* Sidebar */}
           <aside className="app-card !p-3 flex flex-col gap-2 overflow-y-auto">
-            <p className="px-2 text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Conversations</p>
+            <p className="px-2 text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">
+              Conversations
+            </p>
 
             {isLoadingAppointments ? (
               <p className="px-2 text-sm text-slate-500">Loading...</p>
             ) : null}
 
             {!isLoadingAppointments && appointments.length === 0 ? (
-              <p className="px-2 text-sm text-slate-500">No confirmed appointments found.</p>
+              <p className="px-2 text-sm text-slate-500">
+                No confirmed appointments found.
+              </p>
             ) : null}
 
             {appointments.map((apt) => {
-              const isActive = String(apt._id) === String(selectedAppointmentId);
+              const isActive =
+                String(apt._id) === String(selectedAppointmentId);
               const peerName = getPeerName(apt);
               return (
                 <button
@@ -203,11 +254,16 @@ const ChatPage = () => {
                 >
                   <Avatar name={peerName} size="sm" />
                   <div className="min-w-0 flex-1">
-                    <p className={`text-sm font-semibold truncate ${isActive ? "text-white" : "text-slate-900"}`}>
+                    <p
+                      className={`text-sm font-semibold truncate ${isActive ? "text-white" : "text-slate-900"}`}
+                    >
                       {peerName}
                     </p>
-                    <p className={`text-xs truncate ${isActive ? "text-brand-100" : "text-slate-400"}`}>
-                      {new Date(apt.appointmentDate).toLocaleDateString()} · {apt.appointmentTime}
+                    <p
+                      className={`text-xs truncate ${isActive ? "text-brand-100" : "text-slate-400"}`}
+                    >
+                      {new Date(apt.appointmentDate).toLocaleDateString()} ·{" "}
+                      {apt.appointmentTime}
                     </p>
                   </div>
                 </button>
@@ -222,10 +278,14 @@ const ChatPage = () => {
               {selectedAppointment ? (
                 <>
                   <Avatar name={getPeerName(selectedAppointment)} size="sm" />
-                  <p className="text-sm font-semibold text-slate-900">{getPeerName(selectedAppointment)}</p>
+                  <p className="text-sm font-semibold text-slate-900">
+                    {getPeerName(selectedAppointment)}
+                  </p>
                 </>
               ) : (
-                <p className="text-sm text-slate-500">Select a conversation to start</p>
+                <p className="text-sm text-slate-500">
+                  Select a conversation to start
+                </p>
               )}
             </div>
 
@@ -247,9 +307,13 @@ const ChatPage = () => {
 
               {!isLoadingMessages
                 ? messages.map((message) => {
-                    const mine = String(message.senderId) === String(currentUserId);
+                    const mine =
+                      String(message.senderId) === String(currentUserId);
                     return (
-                      <div className={`flex ${mine ? "justify-end" : "justify-start"}`} key={message._id}>
+                      <div
+                        className={`flex ${mine ? "justify-end" : "justify-start"}`}
+                        key={message._id}
+                      >
                         <article
                           className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm shadow-sm ${
                             mine
@@ -257,8 +321,12 @@ const ChatPage = () => {
                               : "rounded-bl-md border border-brand-100/60 bg-white text-slate-800"
                           }`}
                         >
-                          <p className="whitespace-pre-wrap break-words">{message.content}</p>
-                          <p className={`mt-1 text-[11px] ${mine ? "text-brand-200" : "text-slate-400"}`}>
+                          <p className="whitespace-pre-wrap break-words">
+                            {message.content}
+                          </p>
+                          <p
+                            className={`mt-1 text-[11px] ${mine ? "text-brand-200" : "text-slate-400"}`}
+                          >
                             {formatDateTime(message.createdAt)}
                           </p>
                         </article>
@@ -271,7 +339,9 @@ const ChatPage = () => {
             {/* Input */}
             <div className="border-t border-brand-100/60 p-3">
               {error ? (
-                <p className="mb-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">{error}</p>
+                <p className="mb-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">
+                  {error}
+                </p>
               ) : null}
 
               <div className="flex items-center gap-2">
@@ -285,7 +355,11 @@ const ChatPage = () => {
                       handleSend();
                     }
                   }}
-                  placeholder={selectedAppointmentId ? "Type a message..." : "Select a conversation first"}
+                  placeholder={
+                    selectedAppointmentId
+                      ? "Type a message..."
+                      : "Select a conversation first"
+                  }
                   value={input}
                 />
                 <button
@@ -294,8 +368,18 @@ const ChatPage = () => {
                   onClick={handleSend}
                   type="button"
                 >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"
+                    />
                   </svg>
                 </button>
               </div>
